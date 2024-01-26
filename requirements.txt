@@ -1,0 +1,7 @@
+numpy
+pymsteams
+pymupdf
+pytesseract
+python-dotenv
+rapidfuzz
+requests
