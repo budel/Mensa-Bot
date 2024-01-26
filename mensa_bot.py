@@ -40,6 +40,13 @@ def send_message(mfc_link, uksh_link, mensa_link):
         burger_section.text("... und nicht vergessen, heute ist Burger Tag!")
         message.addSection(burger_section)
 
+    # create a link to the repo
+    code_section = pymsteams.cardsection()
+    code_section.text(
+        "<div style='text-align: right'><sup><a href='https://github.com/budel/Mensa-Bot'>Code</a></sup></div>"
+    )
+    message.addSection(code_section)
+
     message.printme()
     message.send()
 
