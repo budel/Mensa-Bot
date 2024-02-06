@@ -1,4 +1,3 @@
-import datetime
 import fitz  # PyMuPDF
 import requests
 import re
@@ -10,9 +9,9 @@ import numpy as np
 MFC_X_INIT = 735
 MFC_WIDTH = 870
 MFC_Y_INIT = 610
-MFC_HEIGHT = 320
+MFC_HEIGHT = 315
 UKSH_X_INIT = 735
-UKSH_WIDTH = 664
+UKSH_WIDTH = 650
 UKSH_Y_INIT = 590
 UKSH_HEIGHT = 252
 
