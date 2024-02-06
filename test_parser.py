@@ -22,6 +22,7 @@ MFC_URL = "https://www.uksh.de/ssn/Unser+Speisenangebot/Campus+L%C3%BCbeck/MFC+C
 UKSH_URL = "https://www.uksh.de/ssn/Unser+Speisenangebot/Campus+L%C3%BCbeck/UKSH_Bistro+L%C3%BCbeck-p-346.html"
 MENSA_URL = "https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=8#mensaplan"
 
+
 @pytest.mark.skip()
 def testMFC():
     today = datetime.date.today()
@@ -52,6 +53,17 @@ def testMFCParser():
         print(" ".join(prices))
 
 
+# @pytest.mark.skip()
+def testUKSH():
+    today = datetime.date.today()
+    start_of_week = today - datetime.timedelta(days=today.weekday())
+    for i in range(5):
+        day = start_of_week + datetime.timedelta(days=i)
+        text = getUKSHMenu(find_pdf(UKSH_URL), day)
+        print(text)
+
+
+@pytest.mark.skip()
 def testUKSHParser():
     today = datetime.date.today()
     start_of_week = today - datetime.timedelta(days=today.weekday())

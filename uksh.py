@@ -86,12 +86,9 @@ def extract_text_with_ocr(
 def extract_text_area(page, x1, y1, x2, y2, price_on_lhs):
     # Convert to image and crop
     cell = preprocessImage(page, x1, y1, x2, y2)
-    cell.save("cell.jpg")
 
     # Perform OCR on the grayscale image using Tesseract
-    #   Page segmentation method 4:
-    # Assume a single column of text of variable sizes.
-    text = pytesseract.image_to_string(cell, config="--psm 11 -l deu")
+    text = pytesseract.image_to_string(cell, lang="deu")
 
     # focus only on price (lower part of cell)
     if price_on_lhs:
@@ -102,12 +99,11 @@ def extract_text_area(page, x1, y1, x2, y2, price_on_lhs):
         price_image = cell.crop(
             (cell.width // 2, cell.height - PRICE_HEIGHT, cell.width, cell.height)
         )
-    #   Page segmentation method 7:
-    # Treat the image as a single text line.
     price = pytesseract.image_to_string(
-        price_image, config="--psm 13 -l deu -c tessedit_char_whitelist=0123456789,/€"
+        price_image, lang="deu", config="--oem 0 -c tessedit_char_whitelist=0123456789,/€"
     )
-    # TODO: Add space before and after "/"
+    # Remove all spaces and add space before and after "/"
+    price = price.replace(" ", "").replace("/", " / ")
 
     return text, price
 
@@ -134,6 +130,7 @@ def compute_menu(text, ocr, prices):
     filtered_text = filter_text(text)
     filtered_ocr = [filter_text(t) for t in ocr]
     filtered_ocr = [t for t in filtered_ocr if t]  # remove empty results
+    prices = [p for p in prices if p]  # remove empty results
 
     menu_list = find_matches(filtered_ocr, filtered_text, prices)
     # subsets = getSubsets(filtered_text)
