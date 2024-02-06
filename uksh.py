@@ -1,4 +1,3 @@
-import datetime
 import fitz  # PyMuPDF
 import requests
 import re
@@ -10,9 +9,9 @@ import numpy as np
 MFC_X_INIT = 735
 MFC_WIDTH = 870
 MFC_Y_INIT = 610
-MFC_HEIGHT = 320
+MFC_HEIGHT = 315
 UKSH_X_INIT = 735
-UKSH_WIDTH = 664
+UKSH_WIDTH = 650
 UKSH_Y_INIT = 590
 UKSH_HEIGHT = 252
 PRICE_HEIGHT = 60
@@ -40,7 +39,7 @@ def getUKSHMenu(url, today):
         UKSH_WIDTH,
         UKSH_Y_INIT,
         UKSH_HEIGHT,
-        5,
+        4,
         price_on_lhs=True,
     )
     return compute_menu(text, ocr, prices)
