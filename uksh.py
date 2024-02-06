@@ -32,7 +32,7 @@ def getUKSHMenu(url, today):
 
 
 def parse_pdf(url, weekday, x_init, width, y_init, height, cols, filename="menu.pdf"):
-    # download_pdf(url, filename)
+    download_pdf(url, filename)
     return extract_text(filename), extract_text_with_ocr(
         filename, weekday, x_init, width, y_init, height, cols
     )
