@@ -48,7 +48,7 @@ def getUKSHMenu(url, today):
 def parse_pdf(
     url, weekday, x_init, width, y_init, height, cols, price_on_lhs, filename="menu.pdf"
 ):
-    # download_pdf(url, filename)
+    download_pdf(url, filename)
     texts, prices = extract_text_with_ocr(
         filename, weekday, x_init, width, y_init, height, cols, price_on_lhs
     )
