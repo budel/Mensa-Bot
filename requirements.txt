@@ -2,6 +2,7 @@ numpy
 pymsteams
 pymupdf
 pytesseract
+pytest
 python-dotenv
 rapidfuzz
 requests

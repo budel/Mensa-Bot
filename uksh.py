@@ -17,24 +17,22 @@ UKSH_Y_INIT = 590
 UKSH_HEIGHT = 252
 
 
-def getMFCMenu(url):
-    weekday = datetime.date.today().weekday()
+def getMFCMenu(url, today):
     text, ocr = parse_pdf(
-        url, weekday, MFC_X_INIT, MFC_WIDTH, MFC_Y_INIT, MFC_HEIGHT, 3
+        url, today.weekday(), MFC_X_INIT, MFC_WIDTH, MFC_Y_INIT, MFC_HEIGHT, 3
     )
     return compute_menu(text, ocr)
 
 
-def getUKSHMenu(url):
-    weekday = datetime.date.today().weekday()
+def getUKSHMenu(url, today):
     text, ocr = parse_pdf(
-        url, weekday, UKSH_X_INIT, UKSH_WIDTH, UKSH_Y_INIT, UKSH_HEIGHT, 5
+        url, today.weekday(), UKSH_X_INIT, UKSH_WIDTH, UKSH_Y_INIT, UKSH_HEIGHT, 5
     )
     return compute_menu(text, ocr)
 
 
 def parse_pdf(url, weekday, x_init, width, y_init, height, cols, filename="menu.pdf"):
-    download_pdf(url, filename)
+    # download_pdf(url, filename)
     return extract_text(filename), extract_text_with_ocr(
         filename, weekday, x_init, width, y_init, height, cols
     )
