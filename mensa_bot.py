@@ -48,7 +48,7 @@ def send_message(mfc_link, uksh_link, mensa_link):
     message.addSection(code_section)
 
     message.printme()
-    # message.send()
+    message.send()
 
 
 def create_message(mfc_link, uksh_link, mensa_link, message):

@@ -165,7 +165,7 @@ def find_matches(ocrs, texts, prices):
             idx = np.argmin(scores)
             del lines[idx]
             del scores[idx]
-        menus.append(" ".join(lines) + " " + price)
+        menus.append(f'{" ".join(lines)}  \n{price}')
     return menus
 
 

@@ -13,6 +13,6 @@ def getMensaMenu(url, today):
     meals = []
     for meal in menu["meals"]:
         if meal["location"] == "Mensa":
-            meals.append(meal["name"])
+            meals.append(f'{meal["name"]}  \n{meal["price"]}')
 
     return "\n- " + "\n- ".join(meals)
