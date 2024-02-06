@@ -15,29 +15,45 @@ UKSH_X_INIT = 735
 UKSH_WIDTH = 664
 UKSH_Y_INIT = 590
 UKSH_HEIGHT = 252
+PRICE_HEIGHT = 60
 
 
-def getMFCMenu(url):
-    weekday = datetime.date.today().weekday()
-    text, ocr = parse_pdf(
-        url, weekday, MFC_X_INIT, MFC_WIDTH, MFC_Y_INIT, MFC_HEIGHT, 3
+def getMFCMenu(url, today):
+    text, ocr, prices = parse_pdf(
+        url,
+        today.weekday(),
+        MFC_X_INIT,
+        MFC_WIDTH,
+        MFC_Y_INIT,
+        MFC_HEIGHT,
+        3,
+        price_on_lhs=False,
     )
-    return compute_menu(text, ocr)
+    return compute_menu(text, ocr, prices)
 
 
-def getUKSHMenu(url):
-    weekday = datetime.date.today().weekday()
-    text, ocr = parse_pdf(
-        url, weekday, UKSH_X_INIT, UKSH_WIDTH, UKSH_Y_INIT, UKSH_HEIGHT, 5
+def getUKSHMenu(url, today):
+    text, ocr, prices = parse_pdf(
+        url,
+        today.weekday(),
+        UKSH_X_INIT,
+        UKSH_WIDTH,
+        UKSH_Y_INIT,
+        UKSH_HEIGHT,
+        5,
+        price_on_lhs=True,
     )
-    return compute_menu(text, ocr)
+    return compute_menu(text, ocr, prices)
 
 
-def parse_pdf(url, weekday, x_init, width, y_init, height, cols, filename="menu.pdf"):
-    download_pdf(url, filename)
-    return extract_text(filename), extract_text_with_ocr(
-        filename, weekday, x_init, width, y_init, height, cols
+def parse_pdf(
+    url, weekday, x_init, width, y_init, height, cols, price_on_lhs, filename="menu.pdf"
+):
+    # download_pdf(url, filename)
+    texts, prices = extract_text_with_ocr(
+        filename, weekday, x_init, width, y_init, height, cols, price_on_lhs
     )
+    return extract_text(filename), texts, prices
 
 
 def download_pdf(url, filename):
@@ -46,8 +62,11 @@ def download_pdf(url, filename):
         pdf_file.write(response.content)
 
 
-def extract_text_with_ocr(filename, weekday, x_init, width, y_init, height, cols):
-    text = []
+def extract_text_with_ocr(
+    filename, weekday, x_init, width, y_init, height, cols, price_on_lhs
+):
+    texts = []
+    prices = []
     with fitz.open(filename) as pdf:
         assert pdf.page_count == 1
         page = pdf[0]
@@ -57,18 +76,41 @@ def extract_text_with_ocr(filename, weekday, x_init, width, y_init, height, cols
             height,
         ):
             for x in range(x_init, x_init + width * cols, width):
-                text += [extract_text_area(page, x, y, x + width, y + height)]
-    return text
+                text, price = extract_text_area(
+                    page, x, y, x + width, y + height, price_on_lhs
+                )
+                texts += [text]
+                prices += [price]
+    return texts, prices
 
 
-def extract_text_area(page, x1, y1, x2, y2):
+def extract_text_area(page, x1, y1, x2, y2, price_on_lhs):
     # Convert to image and crop
-    gray_image = preprocessImage(page, x1, y1, x2, y2)
+    cell = preprocessImage(page, x1, y1, x2, y2)
+    cell.save("cell.jpg")
 
     # Perform OCR on the grayscale image using Tesseract
-    text = pytesseract.image_to_string(gray_image, config="-l deu")
+    #   Page segmentation method 4:
+    # Assume a single column of text of variable sizes.
+    text = pytesseract.image_to_string(cell, config="--psm 11 -l deu")
 
-    return text
+    # focus only on price (lower part of cell)
+    if price_on_lhs:
+        price_image = cell.crop(
+            (0, cell.height - PRICE_HEIGHT, cell.width // 2, cell.height)
+        )
+    else:
+        price_image = cell.crop(
+            (cell.width // 2, cell.height - PRICE_HEIGHT, cell.width, cell.height)
+        )
+    #   Page segmentation method 7:
+    # Treat the image as a single text line.
+    price = pytesseract.image_to_string(
+        price_image, config="--psm 13 -l deu -c tessedit_char_whitelist=0123456789,/€"
+    )
+    # TODO: Add space before and after "/"
+
+    return text, price
 
 
 def preprocessImage(page, x1, y1, x2, y2, dpi=300):
@@ -89,12 +131,12 @@ def extract_text(filename):
     return text
 
 
-def compute_menu(text, ocr):
+def compute_menu(text, ocr, prices):
     filtered_text = filter_text(text)
     filtered_ocr = [filter_text(t) for t in ocr]
     filtered_ocr = [t for t in filtered_ocr if t]  # remove empty results
 
-    menu_list = find_matches(filtered_ocr, filtered_text)
+    menu_list = find_matches(filtered_ocr, filtered_text, prices)
     # subsets = getSubsets(filtered_text)
     # menu_list = getDailyMenu(subsets[weekday])
 
@@ -112,9 +154,9 @@ def filter_text(text):
     return filtered_text
 
 
-def find_matches(ocrs, texts):
+def find_matches(ocrs, texts, prices):
     menus = []
-    for menu in ocrs:
+    for menu, price in zip(ocrs, prices):
         lines = []
         scores = []
         for line in menu:
@@ -127,7 +169,7 @@ def find_matches(ocrs, texts):
             idx = np.argmin(scores)
             del lines[idx]
             del scores[idx]
-        menus.append(" ".join(lines))
+        menus.append(" ".join(lines) + " " + price)
     return menus
 
 

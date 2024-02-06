@@ -48,10 +48,11 @@ def send_message(mfc_link, uksh_link, mensa_link):
     message.addSection(code_section)
 
     message.printme()
-    message.send()
+    # message.send()
 
 
 def create_message(mfc_link, uksh_link, mensa_link, message):
+    today = datetime.date.today()
     for m_link, m_name in zip(
         [mfc_link, uksh_link, mensa_link],
         ["MFC Cafeteria", "UKSH Bistro", "Studenten Mensa"],
@@ -64,11 +65,11 @@ def create_message(mfc_link, uksh_link, mensa_link, message):
         section.enableMarkdown()
         text = ""
         if "MFC" in m_name:
-            text += getMFCMenu(m_link)
+            text += getMFCMenu(m_link, today)
         if "UKSH" in m_name:
-            text += getUKSHMenu(m_link)
+            text += getUKSHMenu(m_link, today)
         elif "Mensa" in m_name:
-            text += getMensaMenu(m_link)
+            text += getMensaMenu(m_link, today)
         section.text(text)
         message.addSection(section)
 
