@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import re
 
@@ -48,7 +49,7 @@ def send_message(mfc_link, uksh_link, mensa_link):
     message.addSection(code_section)
 
     message.printme()
-    message.send()
+    send_if_new(message)
 
 
 def create_message(mfc_link, uksh_link, mensa_link, message):
@@ -72,6 +73,20 @@ def create_message(mfc_link, uksh_link, mensa_link, message):
             text += getMensaMenu(m_link, today)
         section.text(text)
         message.addSection(section)
+
+
+def send_if_new(message):
+    cur_payload = json.dumps(message.payload)
+    payload_file = 'payload.json'
+    if os.path.exists(payload_file):
+        with open(payload_file, "r") as f:
+            prev_payload = json.dumps(json.load(f))
+            if prev_payload == cur_payload:
+                return
+    
+    with open(payload_file, 'w') as f:
+        json.dump(message.payload, f)
+    message.send()
 
 
 if __name__ == "__main__":
