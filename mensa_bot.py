@@ -17,6 +17,8 @@ MENSA_URL = "https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=8#mensapl
 
 def find_pdf(url):
     res = requests.post(url)
+    if (res.status_code != 200):
+        return None
     kw = datetime.date.today().isocalendar()[1]
     pdf_link = [
         "https://www.uksh.de" + pdf_link[6:-1]
@@ -58,21 +60,25 @@ def create_message(mfc_link, uksh_link, mensa_link, message):
         [mfc_link, uksh_link, mensa_link],
         ["MFC Cafeteria", "UKSH Bistro", "Studenten Mensa"],
     ):
-        section = pymsteams.cardsection()
-        section.linkButton(m_name, m_link)
-        message.addSection(section)
-
-        section = pymsteams.cardsection()
-        section.enableMarkdown()
-        text = ""
-        if "MFC" in m_name:
-            text += getMFCMenu(m_link, today)
-        if "UKSH" in m_name:
-            text += getUKSHMenu(m_link, today)
-        elif "Mensa" in m_name:
-            text += getMensaMenu(m_link, today)
-        section.text(text)
-        message.addSection(section)
+        if(m_link):
+            section = pymsteams.cardsection()
+            section.linkButton(m_name, m_link)
+            message.addSection(section)
+            section = pymsteams.cardsection()
+            section.enableMarkdown()
+            text = ""
+            if "MFC" in m_name:
+                text += getMFCMenu(m_link, today)
+            if "UKSH" in m_name:
+                text += getUKSHMenu(m_link, today)
+            elif "Mensa" in m_name:
+                text += getMensaMenu(m_link, today)
+            section.text(text)
+            message.addSection(section)
+        else:
+            section = pymsteams.cardsection()
+            section.text(f"Kein Speiseplan für {m_name} gefunden.")
+            message.addSection(section)
 
 
 def send_if_new(message):

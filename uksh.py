@@ -18,31 +18,37 @@ PRICE_HEIGHT = 60
 
 
 def getMFCMenu(url, today):
-    text, ocr, prices = parse_pdf(
-        url,
-        today.weekday(),
-        MFC_X_INIT,
-        MFC_WIDTH,
-        MFC_Y_INIT,
-        MFC_HEIGHT,
-        3,
-        price_on_lhs=False,
-    )
-    return compute_menu(text, ocr, prices)
+    try:
+        text, ocr, prices = parse_pdf(
+            url,
+            today.weekday(),
+            MFC_X_INIT,
+            MFC_WIDTH,
+            MFC_Y_INIT,
+            MFC_HEIGHT,
+            3,
+            price_on_lhs=False,
+        )
+        return compute_menu(text, ocr, prices)
+    except Exception as e:
+        return f"Failed to get MFC menu: {e}"
 
 
 def getUKSHMenu(url, today):
-    text, ocr, prices = parse_pdf(
-        url,
-        today.weekday(),
-        UKSH_X_INIT,
-        UKSH_WIDTH,
-        UKSH_Y_INIT,
-        UKSH_HEIGHT,
-        4,
-        price_on_lhs=True,
-    )
-    return compute_menu(text, ocr, prices)
+    try:
+        text, ocr, prices = parse_pdf(
+            url,
+            today.weekday(),
+            UKSH_X_INIT,
+            UKSH_WIDTH,
+            UKSH_Y_INIT,
+            UKSH_HEIGHT,
+            4,
+            price_on_lhs=True,
+        )
+        return compute_menu(text, ocr, prices)
+    except Exception as e:
+        return f"Failed to get UKSH menu: {e}"
 
 
 def parse_pdf(
@@ -57,6 +63,8 @@ def parse_pdf(
 
 def download_pdf(url, filename):
     response = requests.get(url)
+    if(response.status_code != 200):
+        raise Exception(f"Failed to download {url}")
     with open(filename, "wb") as pdf_file:
         pdf_file.write(response.content)
 
