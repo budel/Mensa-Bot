@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 import re
+import sys
 
 import pymsteams
 import requests
@@ -51,7 +52,14 @@ def send_message(mfc_link, uksh_link, mensa_link):
     message.addSection(code_section)
 
     message.printme()
-    send_if_new(message)
+    payload_file = 'payload.json'
+    if len(sys.argv) > 1:
+        check_for_updates(message, payload_file)
+    else:
+        message.send()
+    with open(payload_file, 'w') as f:
+        json.dump(message.payload, f)
+
 
 
 def create_message(mfc_link, uksh_link, mensa_link, message):
@@ -62,11 +70,8 @@ def create_message(mfc_link, uksh_link, mensa_link, message):
     ):
         if(m_link):
             section = pymsteams.cardsection()
-            section.linkButton(m_name, m_link)
-            message.addSection(section)
-            section = pymsteams.cardsection()
             section.enableMarkdown()
-            text = ""
+            text = f"## [{m_name}]({m_link})\n"
             if "MFC" in m_name:
                 text += getMFCMenu(m_link, today)
             if "UKSH" in m_name:
@@ -81,17 +86,19 @@ def create_message(mfc_link, uksh_link, mensa_link, message):
             message.addSection(section)
 
 
-def send_if_new(message):
-    cur_payload = json.dumps(message.payload)
-    payload_file = 'payload.json'
+def check_for_updates(message, payload_file = 'payload.json'):
     if os.path.exists(payload_file):
         with open(payload_file, "r") as f:
-            prev_payload = json.dumps(json.load(f))
-            if prev_payload == cur_payload:
-                return
-    
-    with open(payload_file, 'w') as f:
-        json.dump(message.payload, f)
+            prev_payload = json.load(f)
+            for prev, cur in zip(prev_payload["sections"], message.payload['sections']):
+                if cur['text'] != prev['text']:
+                    print(cur['text'])
+                    send_correction(cur['text'])
+ 
+
+def send_correction(text):
+    message = pymsteams.connectorcard(os.getenv("WEBHOOK"))
+    message.text(f"Korrektur:\n{text}")
     message.send()
 
 
