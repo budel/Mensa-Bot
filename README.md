@@ -27,7 +27,11 @@ I recommend putting it in a crontab with `crontab -e`, e.g. to run it every week
 ```
 30 10 * * 1-5 /path/to/python-venv/bin/python3 /path/to/Mensa-Bot/mensa_bot.py > /path/to/log/output.log 2>&1
 ```
-If you configure multiple jobs per day, the script will only send messages when something changed.
+You can start following jobs on the same day with another argument to send corrections, e.g.
+```
+30 6 * * 1-5 /path/to/python-venv/bin/python3 /path/to/Mensa-Bot/mensa_bot.py > /path/to/log/output.log 2>&1
+30 10 * * 1-5 /path/to/python-venv/bin/python3 /path/to/Mensa-Bot/mensa_bot.py correct > /path/to/log/output.log 2>&1
+```
 
 ## Thanks
 
