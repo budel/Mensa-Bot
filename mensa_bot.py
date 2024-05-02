@@ -1,4 +1,5 @@
 import datetime
+import difflib
 import json
 import os
 import re
@@ -18,7 +19,7 @@ MENSA_URL = "https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=8#mensapl
 
 def find_pdf(url):
     res = requests.post(url)
-    if (res.status_code != 200):
+    if res.status_code != 200:
         return None
     kw = datetime.date.today().isocalendar()[1]
     pdf_link = [
@@ -52,14 +53,13 @@ def send_message(mfc_link, uksh_link, mensa_link):
     message.addSection(code_section)
 
     message.printme()
-    payload_file = 'payload.json'
+    payload_file = "payload.json"
     if len(sys.argv) > 1:
         check_for_updates(message, payload_file)
     else:
         message.send()
-    with open(payload_file, 'w') as f:
+    with open(payload_file, "w") as f:
         json.dump(message.payload, f)
-
 
 
 def create_message(mfc_link, uksh_link, mensa_link, message):
@@ -68,7 +68,7 @@ def create_message(mfc_link, uksh_link, mensa_link, message):
         [mfc_link, uksh_link, mensa_link],
         ["MFC Cafeteria", "UKSH Bistro", "Studenten Mensa"],
     ):
-        if(m_link):
+        if m_link:
             section = pymsteams.cardsection()
             section.enableMarkdown()
             text = f"## [{m_name}]({m_link})\n"
@@ -86,15 +86,47 @@ def create_message(mfc_link, uksh_link, mensa_link, message):
             message.addSection(section)
 
 
-def check_for_updates(message, payload_file = 'payload.json'):
+def check_for_updates(message, payload_file="payload.json", send_on_diff=True):
     if os.path.exists(payload_file):
         with open(payload_file, "r") as f:
             prev_payload = json.load(f)
-            for prev, cur in zip(prev_payload["sections"], message.payload['sections']):
-                if cur['text'] != prev['text']:
-                    print(cur['text'])
-                    send_correction(cur['text'])
- 
+            for prev, cur in zip(prev_payload["sections"], message.payload["sections"]):
+                if is_different(cur["text"], prev["text"]):
+                    print(cur["text"])
+                    if send_on_diff:
+                        send_correction(what_is_different(cur["text"], prev["text"]))
+                    else:
+                        return what_is_different(cur["text"], prev["text"])
+
+
+def is_different(cur, prev):
+    if cur == prev:
+        return False
+    if is_different_order(cur, prev):
+        return False
+    return True
+
+
+def is_different_order(cur, prev):
+    return "\n".join(sorted(cur.splitlines())) == "\n".join(sorted(prev.splitlines()))
+
+
+def what_is_different(cur, prev):
+    diff = difflib.ndiff(prev.splitlines(), cur.splitlines())
+    what = ""
+    for s in diff:
+        if s[0] == "-":
+            bullet = "-" if "-" in s[1:] else ""
+            s = bullet + s[1:].replace("-", "<s>", 1)
+            s += "</s>  "
+        elif s[0] == "+":
+            s = s[1:].replace("-", "<b>", 1)
+            s += "</b>  "
+        elif s[0] == "?":
+            continue
+        what += s.lstrip() + "\n"
+    return what
+
 
 def send_correction(text):
     message = pymsteams.connectorcard(os.getenv("WEBHOOK"))
