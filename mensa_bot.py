@@ -1,5 +1,4 @@
 import datetime
-import difflib
 import json
 import os
 import re
@@ -112,19 +111,29 @@ def is_different_order(cur, prev):
 
 
 def what_is_different(cur, prev):
-    diff = difflib.ndiff(prev.splitlines(), cur.splitlines())
-    what = ""
-    for s in diff:
-        if s[0] == "-":
-            bullet = "-" if "-" in s[1:] else ""
-            s = bullet + s[1:].replace("-", "<s>", 1)
-            s += "</s>  "
-        elif s[0] == "+":
-            s = s[1:].replace("-", "<b>", 1)
-            s += "</b>  "
-        elif s[0] == "?":
-            continue
-        what += s.lstrip() + "\n"
+    cur_lines = cur.split("\n-")
+    prev_lines = prev.split("\n-")
+
+    what = prev_lines[0]  # Link to menu
+    for line in prev_lines[1:]:
+        if line in cur_lines:
+            what += "\n-" + line + "\n"
+            cur_lines.remove(line)
+        else:
+            what += "\n- <s>" + line + "</s>  \n"
+
+    # print the new lines
+    idx = 0
+    for line in cur_lines[1:]:
+        new_line = "<b>" + line + "</b>\n"
+        idx = what.find("</s>  \n", idx)
+        offset = len("</s>  \n")
+        if idx != -1:
+            what = what[: idx + offset] + new_line + what[idx + offset :]
+            idx += offset + len(new_line)
+        else:
+            what += new_line
+
     return what
 
 
