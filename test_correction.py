@@ -60,7 +60,9 @@ def test_check_for_updates_without_diff():
 
 def test_check_for_updates_with_different_order():
     message = Message()
-    message.payload["sections"][2]["text"] = """## [Studenten Mensa](https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=8#mensaplan)
+    message.payload["sections"][2][
+        "text"
+    ] = """## [Studenten Mensa](https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=8#mensaplan)
 
 - Chicken Makhani, Basmatireis, Indisches Butterhuhn, Joghurt[Bio], Tomate, Mandeln  
 2,50 € / 5,40 € / 6,10 €
@@ -80,7 +82,9 @@ def test_check_for_updates_with_different_order():
 
 def test_check_for_updates_with_diff():
     message = Message()
-    message.payload["sections"][2]["text"] = """## [Studenten Mensa](https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=8#mensaplan)
+    message.payload["sections"][2][
+        "text"
+    ] = """## [Studenten Mensa](https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=8#mensaplan)
 
 - Grüne- Thai- Kokos- Gemüsesuppe, Ingwer, Mie-Nudeln, Koriander, Baguettebrot  
 2,50 € / 4,30 € / 5,00 €
