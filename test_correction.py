@@ -116,7 +116,7 @@ def test_check_for_updates_with_order_and_diff():
 3,50 € / 5,30 € / 6,00 €
 - Tagesgericht: Röstkartoffeln, mediterranes Gemüse, Kräuterquark  
 3,80 € / 3,80 € / 3,80 €
-- . und Hähnchen vom Grill  
+- . und Hähnchen aus der Pfanne  
 2,00 € / 2,00 € / 2,00 €
 - Zu jedem wechselnden Tagesgericht gibt es ein Fritz-Getränk zum Aktionspreis von 1,60€ dazu !, Wir freuen uns auf Euch  
 """
