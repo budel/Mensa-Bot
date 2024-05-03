@@ -108,17 +108,17 @@ def test_check_for_updates_with_order_and_diff():
         "text"
     ] = """## [Studenten Mensa](https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=8#mensaplan)
 
+- Chicken Makhani, Basmatireis, Indisches Butterhuhn, Joghurt[Bio], Tomate, Mandeln  
+2,50 € / 5,40 € / 6,10 €
 - Grüne- Thai- Kokos- Gemüsesuppe, Ingwer, Mie-Nudeln, Koriander, Baguettebrot  
 2,50 € / 4,30 € / 5,00 €
 - Quinoa Bowl - Spinat-Hummus, Brokkoli, Karotten, Ingwer, Casshewkerne  
 3,50 € / 5,30 € / 6,00 €
 - Tagesgericht: Röstkartoffeln, mediterranes Gemüse, Kräuterquark  
 3,80 € / 3,80 € / 3,80 €
-- Chicken Makhani, Basmatireis, Indisches Butterhuhn, Joghurt[Bio], Tomate, Mandeln  
-2,50 € / 5,40 € / 6,10 €
 - . und Hähnchen vom Grill  
 2,00 € / 2,00 € / 2,00 €
 - Zu jedem wechselnden Tagesgericht gibt es ein Fritz-Getränk zum Aktionspreis von 1,60€ dazu !, Wir freuen uns auf Euch  
 """
-    out = check_for_updates(message, "payload.json", send_on_diff=True)
+    out = check_for_updates(message, "payload.json", send_on_diff=False)
     assert out != None
