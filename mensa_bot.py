@@ -4,6 +4,7 @@ import os
 import re
 import sys
 
+from burger import getBurgerMenu, isBurgerDay
 import pymsteams
 import requests
 from dotenv import load_dotenv
@@ -14,6 +15,7 @@ from uksh import getMFCMenu, getUKSHMenu
 MFC_URL = "https://www.uksh.de/ssn/Unser+Speisenangebot/Campus+L%C3%BCbeck/MFC+Cafeteria+im+UKSH_Verwaltungszentrum.html"
 UKSH_URL = "https://www.uksh.de/ssn/Unser+Speisenangebot/Campus+L%C3%BCbeck/UKSH_Bistro+L%C3%BCbeck-p-346.html"
 MENSA_URL = "https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=8#mensaplan"
+BURGER_URL = "https://www.street-gourmet.de"
 
 
 def find_pdf(url):
@@ -39,9 +41,12 @@ def send_message(mfc_link, uksh_link, mensa_link):
     create_message(mfc_link, uksh_link, mensa_link, message)
 
     # create the Burger section
-    if datetime.date.today().strftime("%a") == "Tue":
+    if not isBurgerDay(datetime.date.today()):
         burger_section = pymsteams.cardsection()
-        burger_section.text("... und nicht vergessen, heute ist Burger Tag!")
+        burger_section.enableMarkdown()
+        text = f"## [{"Foodtruck"}]({BURGER_URL})\n"
+        text += getBurgerMenu()
+        burger_section.text(text)
         message.addSection(burger_section)
 
     # create a link to the repo
