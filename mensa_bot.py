@@ -44,7 +44,7 @@ def send_message(mfc_link, uksh_link, mensa_link):
     if isBurgerDay(datetime.date.today()):
         burger_section = pymsteams.cardsection()
         burger_section.enableMarkdown()
-        text = f"## [{"Foodtruck"}]({BURGER_URL})\n"
+        text = f"## [Foodtruck]({BURGER_URL})\n"
         text += getBurgerMenu()
         burger_section.text(text)
         message.addSection(burger_section)
