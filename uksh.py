@@ -1,3 +1,5 @@
+import os
+import shutil
 import fitz  # PyMuPDF
 import requests
 import re
@@ -6,13 +8,13 @@ from PIL import Image
 from rapidfuzz import process, fuzz
 import numpy as np
 
-MFC_X_INIT = 735
+MFC_X_INIT = 325
 MFC_WIDTH = 870
-MFC_Y_INIT = 610
+MFC_Y_INIT = 345
 MFC_HEIGHT = 315
-UKSH_X_INIT = 930
+UKSH_X_INIT = 370
 UKSH_WIDTH = 650
-UKSH_Y_INIT = 735
+UKSH_Y_INIT = 336
 UKSH_HEIGHT = 252
 PRICE_HEIGHT = 60
 
@@ -55,6 +57,9 @@ def parse_pdf(
     url, weekday, x_init, width, y_init, height, cols, price_on_lhs, filename="menu.pdf"
 ):
     download_pdf(url, filename)
+    shutil.copy(filename, "tmp.pdf")
+    auto_crop_pdf("tmp.pdf", filename)
+    os.remove("tmp.pdf")
     texts, prices = extract_text_with_ocr(
         filename, weekday, x_init, width, y_init, height, cols, price_on_lhs
     )
@@ -63,10 +68,27 @@ def parse_pdf(
 
 def download_pdf(url, filename):
     response = requests.get(url)
-    if(response.status_code != 200):
+    if response.status_code != 200:
         raise Exception(f"Failed to download {url}")
     with open(filename, "wb") as pdf_file:
         pdf_file.write(response.content)
+
+
+def auto_crop_pdf(input_pdf, output_pdf):
+    doc = fitz.open(input_pdf)
+    for page in doc:
+        blocks = page.get_text("dict")["blocks"]
+
+        # Calculate minimal rect containing all text
+        new_rect = fitz.Rect(10000, 10000, 0, 0)
+        for block in blocks:
+            r = fitz.Rect(block["bbox"])
+            new_rect.include_rect(r)
+
+        # Update page cropbox
+        page.set_cropbox(new_rect)
+    doc.save(output_pdf)
+    doc.close()
 
 
 def extract_text_with_ocr(
@@ -108,7 +130,9 @@ def extract_text_area(page, x1, y1, x2, y2, price_on_lhs):
             (cell.width // 2, cell.height - PRICE_HEIGHT, cell.width, cell.height)
         )
     price = pytesseract.image_to_string(
-        price_image, lang="deu", config="--oem 0 -c tessedit_char_whitelist=0123456789,/€"
+        price_image,
+        lang="deu",
+        config="--oem 0 -c tessedit_char_whitelist=0123456789,/€",
     )
     # Remove all spaces and add space before and after "/"
     price = price.replace(" ", "").replace("/", " / ")
