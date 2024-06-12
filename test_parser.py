@@ -1,16 +1,18 @@
 import datetime
 from mensa import getMensaMenu
-from mensa_bot import MENSA_URL, MFC_URL, UKSH_URL, find_pdf
 
 from uksh import (
     MFC_HEIGHT,
+    MFC_URL,
     MFC_WIDTH,
     MFC_X_INIT,
     MFC_Y_INIT,
     UKSH_HEIGHT,
+    UKSH_URL,
     UKSH_WIDTH,
     UKSH_X_INIT,
     UKSH_Y_INIT,
+    find_pdf,
     getMFCMenu,
     getUKSHMenu,
     parse_pdf,
@@ -24,7 +26,7 @@ def testMFC():
     start_of_week = today - datetime.timedelta(days=today.weekday())
     for i in range(5):
         day = start_of_week + datetime.timedelta(days=i)
-        text = getMFCMenu(find_pdf(MFC_URL), day)
+        text = getMFCMenu(day)
         print(text)
 
 
@@ -35,7 +37,7 @@ def testMFCParser():
     for i in range(5):
         day = start_of_week + datetime.timedelta(days=i)
         text, ocr, prices = parse_pdf(
-            find_pdf(MFC_URL),
+            find_pdf(MFC_URL, day),
             day.weekday(),
             MFC_X_INIT,
             MFC_WIDTH,
@@ -54,7 +56,7 @@ def testUKSH():
     start_of_week = today - datetime.timedelta(days=today.weekday())
     for i in range(5):
         day = start_of_week + datetime.timedelta(days=i)
-        text = getUKSHMenu(find_pdf(UKSH_URL), day)
+        text = getUKSHMenu(day)
         print(text)
 
 
@@ -65,7 +67,7 @@ def testUKSHParser():
     for i in range(5):
         day = start_of_week + datetime.timedelta(days=i)
         text, ocr, prices = parse_pdf(
-            find_pdf(UKSH_URL),
+            find_pdf(UKSH_URL, day),
             day.weekday(),
             UKSH_X_INIT,
             UKSH_WIDTH,
@@ -84,5 +86,5 @@ def testMensa():
     start_of_week = today - datetime.timedelta(days=today.weekday())
     for i in range(5):
         day = start_of_week + datetime.timedelta(days=i)
-        text = getMensaMenu(MENSA_URL, day)
+        text = getMensaMenu(day)
         print(text)
