@@ -1,15 +1,14 @@
 import datetime
 import json
 import os
-import re
 import sys
 
-from burger import getBurgerMenu, isBurgerDay
+from burger import getBurgerMenu
 import pymsteams
-import requests
 from dotenv import load_dotenv
 
 from mensa import getMensaMenu
+from menu import Menu
 from uksh import getMFCMenu, getUKSHMenu
 
 
@@ -29,13 +28,14 @@ def main():
     message.addSection(code_section)
 
     message.printme()
-    payload_file = "payload.json"
+    menus_file = "menus.json"
+    menu_list = [menu.to_dict() for menu in menus]
     if len(sys.argv) > 1:
-        check_for_updates(message, payload_file)
+        check_for_updates(menu_list, menus_file)
     else:
         message.send()
-    with open(payload_file, "w") as f:
-        json.dump(message.payload, f)
+    with open(menus_file, "w", encoding="utf-8") as f:
+        json.dump(menu_list, f, indent=2, ensure_ascii=False)
 
 
 def create_message(message):
@@ -52,47 +52,33 @@ def create_message(message):
     return menus
 
 
-def check_for_updates(message, payload_file="payload.json", send_on_diff=True):
-    if os.path.exists(payload_file):
-        with open(payload_file, "r") as f:
-            prev_payload = json.load(f)
-            for prev, cur in zip(prev_payload["sections"], message.payload["sections"]):
-                if is_different(cur["text"], prev["text"]):
-                    print(cur["text"])
+def check_for_updates(menu_list, menus_file="menus.json", send_on_diff=True):
+    if os.path.exists(menus_file):
+        with open(menus_file, "r") as f:
+            prev_menus = json.load(f)
+            for prev, cur in zip(prev_menus, menu_list):
+                prev = Menu.from_dict(prev)
+                cur = Menu.from_dict(cur)
+                if not prev.is_same(cur):
                     if send_on_diff:
-                        send_correction(what_is_different(cur["text"], prev["text"]))
+                        send_correction(what_is_different(cur, prev))
                     else:
-                        return what_is_different(cur["text"], prev["text"])
-
-
-def is_different(cur, prev):
-    if cur == prev:
-        return False
-    if is_different_order(cur, prev):
-        return False
-    return True
-
-
-def is_different_order(cur, prev):
-    return "\n".join(sorted(cur.splitlines())) == "\n".join(sorted(prev.splitlines()))
+                        return what_is_different(cur, prev)
 
 
 def what_is_different(cur, prev):
-    cur_lines = cur.split("\n-")
-    prev_lines = prev.split("\n-")
-
-    what = prev_lines[0]  # Link to menu
-    for line in prev_lines[1:]:
-        if line in cur_lines:
-            what += "\n-" + line + "\n"
-            cur_lines.remove(line)
+    what = f"## [{prev.title}]({prev.url})"
+    for item in prev.items:
+        if cur.has_item(item):
+            what += "\n- " + str(item) + "\n"
+            cur.remove_item(item)
         else:
-            what += "\n- <s>" + line + "</s>  \n"
+            what += "\n- <s>" + str(item) + "</s>  \n"
 
-    # print the new lines
+    # generate the new output
     idx = 0
-    for line in cur_lines[1:]:
-        new_line = "<b>" + line + "</b>\n"
+    for item in cur.items:
+        new_line = "<b>" + str(item) + "</b>\n"
         idx = what.find("</s>  \n", idx)
         offset = len("</s>  \n")
         if idx != -1:
