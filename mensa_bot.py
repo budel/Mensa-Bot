@@ -32,22 +32,13 @@ def find_pdf(url):
     return pdf_link[0]
 
 
-def send_message(mfc_link, uksh_link, mensa_link):
+def send_message(mfc_link, uksh_link, mensa_link, burger_link):
     load_dotenv()
     message = pymsteams.connectorcard(os.getenv("WEBHOOK"))
     message.text("Heute zum Mittagessen ... ")
 
     # create sections in message
-    create_message(mfc_link, uksh_link, mensa_link, message)
-
-    # create the Burger section
-    if isBurgerDay(datetime.date.today()):
-        burger_section = pymsteams.cardsection()
-        burger_section.enableMarkdown()
-        text = f"## [Foodtruck]({BURGER_URL})\n"
-        text += getBurgerMenu()
-        burger_section.text(text)
-        message.addSection(burger_section)
+    create_message(mfc_link, uksh_link, mensa_link, burger_link, message)
 
     # create a link to the repo
     code_section = pymsteams.cardsection()
@@ -66,11 +57,11 @@ def send_message(mfc_link, uksh_link, mensa_link):
         json.dump(message.payload, f)
 
 
-def create_message(mfc_link, uksh_link, mensa_link, message):
+def create_message(mfc_link, uksh_link, mensa_link, burger_link, message):
     today = datetime.date.today()
     for m_link, m_name in zip(
-        [mfc_link, uksh_link, mensa_link],
-        ["MFC Cafeteria", "UKSH Bistro", "Studenten Mensa"],
+        [mfc_link, uksh_link, mensa_link, burger_link],
+        ["MFC Cafeteria", "UKSH Bistro", "Studenten Mensa", "Foodtruck"],
     ):
         if m_link:
             section = pymsteams.cardsection()
@@ -78,10 +69,15 @@ def create_message(mfc_link, uksh_link, mensa_link, message):
             text = f"## [{m_name}]({m_link})\n"
             if "MFC" in m_name:
                 text += getMFCMenu(m_link, today)
-            if "UKSH" in m_name:
+            elif "UKSH" in m_name:
                 text += getUKSHMenu(m_link, today)
             elif "Mensa" in m_name:
                 text += getMensaMenu(m_link, today)
+            elif "Foodtruck" in m_name:
+                if isBurgerDay(today):
+                    text += getBurgerMenu()
+                else:
+                    continue
             section.text(text)
             message.addSection(section)
         else:
@@ -149,4 +145,4 @@ def send_correction(text):
 
 
 if __name__ == "__main__":
-    send_message(find_pdf(MFC_URL), find_pdf(UKSH_URL), MENSA_URL)
+    send_message(find_pdf(MFC_URL), find_pdf(UKSH_URL), MENSA_URL, BURGER_URL)
