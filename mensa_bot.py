@@ -66,19 +66,18 @@ def create_message(mfc_link, uksh_link, mensa_link, burger_link, message):
         if m_link:
             section = pymsteams.cardsection()
             section.enableMarkdown()
-            text = f"## [{m_name}]({m_link})\n"
             if "MFC" in m_name:
-                text += getMFCMenu(m_link, today)
+                menu = getMFCMenu(m_link, today)
             elif "UKSH" in m_name:
-                text += getUKSHMenu(m_link, today)
+                menu = getUKSHMenu(m_link, today)
             elif "Mensa" in m_name:
-                text += getMensaMenu(m_link, today)
+                menu = getMensaMenu(m_link, today)
             elif "Foodtruck" in m_name:
                 if isBurgerDay(today):
-                    text += getBurgerMenu()
+                    menu = getBurgerMenu()
                 else:
                     continue
-            section.text(text)
+            section.text(f"## [{m_name}]({m_link})\n{menu}")
             message.addSection(section)
         else:
             section = pymsteams.cardsection()

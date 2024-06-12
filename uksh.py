@@ -166,7 +166,7 @@ def compute_menu(text, ocr, prices):
     filtered_ocr = [t for t in filtered_ocr if t]  # remove empty results
     prices = [p for p in prices if p]  # remove empty results
     menu = find_matches(filtered_ocr, filtered_text, prices)
-    return str(menu)
+    return menu
 
 
 def filter_text(text):

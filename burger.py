@@ -1,9 +1,26 @@
+from menu import Menu, MenuItem
 
-def isBurgerDay(today):
-  return today.strftime("%a") == "Tue"
 
-def getBurgerMenu():
-    return """
+class BurgerMenu(Menu):
+    def __init__(self):
+        self.items = [
+            MenuItem("Special Menü", "14,00 €"),
+            MenuItem("Special Menü mit Süßkartoffelpommes", "15,00 €"),
+            MenuItem("Cheeseburger", "8,50 €"),
+            MenuItem("Double Cheese & Bacon", "8,90 €"),
+            MenuItem("Französischer Ziegenkäse Burger", "8,90 €"),
+            MenuItem("Feuriger Salsa Burger", "8,90 €"),
+            MenuItem("Original Smoked BBQ-Burger", "9,50 €"),
+            MenuItem("Falafel Burger", "8,50 €"),
+            MenuItem("Kiwi Halloumi Burger", "8,50 €"),
+            MenuItem("Jackfruit Burger", "8,90 €"),
+            MenuItem("Planty of Chicken Burger", "8,90 €"),
+            MenuItem("Rustic Fries", "4,50 €"),
+            MenuItem("Süßkartoffelpommes", "5,50 €"),
+        ]
+
+    def __str__(self):
+        return """
 <div style="width:400px; height:135px; border:2px solid black; padding:10px;">
     <strong>Special Menü</strong>
     <ul style="list-style-type: none; padding: 0; margin: 0;">
@@ -76,3 +93,11 @@ def getBurgerMenu():
 </ul>
 </div>
   """
+
+
+def isBurgerDay(today):
+    return today.strftime("%a") == "Tue"
+
+
+def getBurgerMenu():
+    return BurgerMenu()

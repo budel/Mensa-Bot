@@ -15,7 +15,7 @@ def getMensaMenu(url, today):
         if meal["location"] == "Mensa":
             menu.add_item(meal["name"], meal["price"])
 
-    return str(menu)
+    return menu
 
 
 def refresh():
