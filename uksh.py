@@ -8,6 +8,8 @@ from PIL import Image
 from rapidfuzz import process, fuzz
 import numpy as np
 
+from menu import Menu
+
 MFC_X_INIT = 325
 MFC_WIDTH = 870
 MFC_Y_INIT = 345
@@ -163,12 +165,8 @@ def compute_menu(text, ocr, prices):
     filtered_ocr = [filter_text(t) for t in ocr]
     filtered_ocr = [t for t in filtered_ocr if t]  # remove empty results
     prices = [p for p in prices if p]  # remove empty results
-
-    menu_list = find_matches(filtered_ocr, filtered_text, prices)
-    # subsets = getSubsets(filtered_text)
-    # menu_list = getDailyMenu(subsets[weekday])
-
-    return "\n- " + "\n- ".join(menu_list)
+    menu = find_matches(filtered_ocr, filtered_text, prices)
+    return str(menu)
 
 
 def filter_text(text):
@@ -183,11 +181,11 @@ def filter_text(text):
 
 
 def find_matches(ocrs, texts, prices):
-    menus = []
-    for menu, price in zip(ocrs, prices):
+    menu = Menu()
+    for meal, price in zip(ocrs, prices):
         lines = []
         scores = []
-        for line in menu:
+        for line in meal:
             best_match = process.extractOne(
                 line, texts, scorer=fuzz.ratio, processor=lambda s: s.lower()
             )
@@ -197,32 +195,5 @@ def find_matches(ocrs, texts, prices):
             idx = np.argmin(scores)
             del lines[idx]
             del scores[idx]
-        menus.append(f'{" ".join(lines)}  \n{price}')
-    return menus
-
-
-def getSubsets(text, cols=3, lines=3):
-    # Assumption: Every day has 3 meals with 3 lines each
-    return [text[i : i + cols * lines] for i in range(0, len(text), cols * lines)]
-
-
-def getIrregularSubsets(text, colsPerDay=[3, 4, 4, 4, 3], lines=3):
-    temp = []
-    i = 0
-    for cols in colsPerDay:
-        temp += [text[i : i + cols * lines]]
-        i += cols * lines
-    return temp
-
-
-def getDailyMenu(text_list, cols=3, lines=3):
-    menu_list = []
-    for i in range(cols):
-        if len(text_list) == cols * lines:
-            # Every day has 3 meals with 3 lines each
-            menu = [text for text in text_list[i : lines * cols : cols]]
-        else:
-            # No Zusatzgericht on Fridays
-            return getDailyMenu(text_list, cols=2)
-        menu_list.append(" ".join(menu))
-    return menu_list
+        menu.add_item(" ".join(lines), price)
+    return menu
