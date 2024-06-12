@@ -1,5 +1,6 @@
 import requests
 import json
+from menu import Menu
 
 
 def getMensaMenu(url, today):
@@ -7,17 +8,16 @@ def getMensaMenu(url, today):
     refresh()
     url = f"https://speiseplan.mcloud.digital/meals?day={day}"
     response = requests.get(url)
-    menu = json.loads(response.text)[0]
-    assert menu["week"] == "current"
+    menu_dict = json.loads(response.text)[0]
 
-    meals = []
-    for meal in menu["meals"]:
+    menu = Menu()
+    for meal in menu_dict["meals"]:
         if meal["location"] == "Mensa":
-            meals.append(f'{meal["name"]}  \n{meal["price"]}')
+            menu.add_item(meal["name"], meal["price"])
 
-    return "\n- " + "\n- ".join(meals)
+    return str(menu)
+
 
 def refresh():
     url = f"https://speiseplan.mcloud.digital/refresh"
     return requests.get(url)
-    

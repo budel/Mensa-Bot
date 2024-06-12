@@ -32,7 +32,7 @@ def find_pdf(url):
     return pdf_link[0]
 
 
-def send_message(mfc_link, uksh_link, mensa_link, burger_link):
+def create_and_send_message(mfc_link, uksh_link, mensa_link, burger_link):
     load_dotenv()
     message = pymsteams.connectorcard(os.getenv("WEBHOOK"))
     message.text("Heute zum Mittagessen ... ")
@@ -145,4 +145,4 @@ def send_correction(text):
 
 
 if __name__ == "__main__":
-    send_message(find_pdf(MFC_URL), find_pdf(UKSH_URL), MENSA_URL, BURGER_URL)
+    create_and_send_message(find_pdf(MFC_URL), find_pdf(UKSH_URL), MENSA_URL, BURGER_URL)
