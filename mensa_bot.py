@@ -38,7 +38,7 @@ def create_and_send_message(mfc_link, uksh_link, mensa_link, burger_link):
     message.text("Heute zum Mittagessen ... ")
 
     # create sections in message
-    create_message(mfc_link, uksh_link, mensa_link, burger_link, message)
+    menus = create_message(mfc_link, uksh_link, mensa_link, burger_link, message)
 
     # create a link to the repo
     code_section = pymsteams.cardsection()
@@ -59,6 +59,7 @@ def create_and_send_message(mfc_link, uksh_link, mensa_link, burger_link):
 
 def create_message(mfc_link, uksh_link, mensa_link, burger_link, message):
     today = datetime.date.today()
+    menus = []
     for m_link, m_name in zip(
         [mfc_link, uksh_link, mensa_link, burger_link],
         ["MFC Cafeteria", "UKSH Bistro", "Studenten Mensa", "Foodtruck"],
@@ -79,10 +80,12 @@ def create_message(mfc_link, uksh_link, mensa_link, burger_link, message):
                     continue
             section.text(f"## [{m_name}]({m_link})\n{menu}")
             message.addSection(section)
+            menus.append(menu)
         else:
             section = pymsteams.cardsection()
             section.text(f"Kein Speiseplan für {m_name} gefunden.")
             message.addSection(section)
+        return menus
 
 
 def check_for_updates(message, payload_file="payload.json", send_on_diff=True):
