@@ -8,12 +8,18 @@ class MenuItem:
 
 
 class Menu:
-    def __init__(self):
+    def __init__(self, title="", url=""):
+        self.title = title
+        self.url = url
         self.items = []
 
     def __str__(self):
-        return "\n- " + "\n- ".join([str(i) for i in self.items])
+        header = f"## [{self.title}]({self.url})"
+        return f"{header}\n- " + "\n- ".join([str(i) for i in self.items])
 
     def add_item(self, name, price):
         new_item = MenuItem(name, price)
         self.items.append(new_item)
+
+    def is_empty(self):
+        return self.items == []

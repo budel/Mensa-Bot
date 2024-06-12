@@ -1,8 +1,11 @@
 from menu import Menu, MenuItem
 
+BURGER_URL = "https://www.street-gourmet.de"
+
 
 class BurgerMenu(Menu):
-    def __init__(self):
+    def __init__(self, title="", url=""):
+        super().__init__(title, url)
         self.items = [
             MenuItem("Special Menü", "14,00 €"),
             MenuItem("Special Menü mit Süßkartoffelpommes", "15,00 €"),
@@ -95,9 +98,12 @@ class BurgerMenu(Menu):
   """
 
 
+def getBurgerMenu(today):
+    if isBurgerDay(today):
+        return BurgerMenu("Foodtruck", BURGER_URL)
+    else:
+        return Menu("Foodtruck", BURGER_URL)
+
+
 def isBurgerDay(today):
     return today.strftime("%a") == "Tue"
-
-
-def getBurgerMenu():
-    return BurgerMenu()

@@ -10,6 +10,8 @@ import numpy as np
 
 from menu import Menu
 
+MFC_URL = "https://www.uksh.de/ssn/Unser+Speisenangebot/Campus+L%C3%BCbeck/MFC+Cafeteria+im+UKSH_Verwaltungszentrum.html"
+UKSH_URL = "https://www.uksh.de/ssn/Unser+Speisenangebot/Campus+L%C3%BCbeck/UKSH_Bistro+L%C3%BCbeck-p-346.html"
 MFC_X_INIT = 325
 MFC_WIDTH = 870
 MFC_Y_INIT = 345
@@ -21,8 +23,23 @@ UKSH_HEIGHT = 252
 PRICE_HEIGHT = 60
 
 
-def getMFCMenu(url, today):
+def find_pdf(url, today):
+    res = requests.post(url)
+    if res.status_code != 200:
+        return None
+    kw = today.isocalendar()[1]
+    pdf_link = [
+        "https://www.uksh.de" + pdf_link[6:-1]
+        for pdf_link in re.findall('href="[^"]+.pdf"', res.text)
+        if f"KW+{kw:0>2}" in pdf_link
+    ]
+
+    return pdf_link[0]
+
+
+def getMFCMenu(today):
     try:
+        url = find_pdf(MFC_URL, today)
         text, ocr, prices = parse_pdf(
             url,
             today.weekday(),
@@ -33,13 +50,14 @@ def getMFCMenu(url, today):
             3,
             price_on_lhs=False,
         )
-        return compute_menu(text, ocr, prices)
+        return compute_menu(text, ocr, prices, "MFC Cafeteria", url)
     except Exception as e:
-        return f"Failed to get MFC menu: {e}"
+        return Menu("MFC Cafeteria", url)
 
 
-def getUKSHMenu(url, today):
+def getUKSHMenu(today):
     try:
+        url = find_pdf(UKSH_URL, today)
         text, ocr, prices = parse_pdf(
             url,
             today.weekday(),
@@ -50,9 +68,9 @@ def getUKSHMenu(url, today):
             4,
             price_on_lhs=True,
         )
-        return compute_menu(text, ocr, prices)
+        return compute_menu(text, ocr, prices, "UKSH Bistro", url)
     except Exception as e:
-        return f"Failed to get UKSH menu: {e}"
+        return Menu("UKSH Bistro", url)
 
 
 def parse_pdf(
@@ -160,13 +178,13 @@ def extract_text(filename):
     return text
 
 
-def compute_menu(text, ocr, prices):
+def compute_menu(text, ocr, prices, title, url):
     filtered_text = filter_text(text)
     filtered_ocr = [filter_text(t) for t in ocr]
     filtered_ocr = [t for t in filtered_ocr if t]  # remove empty results
     prices = [p for p in prices if p]  # remove empty results
-    menu = find_matches(filtered_ocr, filtered_text, prices)
-    return menu
+    menu = Menu(title, url)
+    return find_matches(filtered_ocr, filtered_text, prices, menu)
 
 
 def filter_text(text):
@@ -180,8 +198,7 @@ def filter_text(text):
     return filtered_text
 
 
-def find_matches(ocrs, texts, prices):
-    menu = Menu()
+def find_matches(ocrs, texts, prices, menu):
     for meal, price in zip(ocrs, prices):
         lines = []
         scores = []
