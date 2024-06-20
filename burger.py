@@ -23,7 +23,8 @@ class BurgerMenu(Menu):
         ]
 
     def __str__(self):
-        return """
+        return f"""
+## [{self.title}]({self.url})
 <div style="width:400px; height:135px; border:2px solid black; padding:10px;">
     <strong>Special Menü</strong>
     <ul style="list-style-type: none; padding: 0; margin: 0;">
