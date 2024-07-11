@@ -4,28 +4,25 @@ import os
 import sys
 
 from burger import getBurgerMenu
-import pymsteams
 from dotenv import load_dotenv
 
 from mensa import getMensaMenu
 from menu import Menu
+from message import Message
 from uksh import getMFCMenu, getUKSHMenu
 
 
 def main():
     load_dotenv()
-    message = pymsteams.connectorcard(os.getenv("WEBHOOK"))
-    message.text("Heute zum Mittagessen ... ")
+    message = Message(os.getenv("WEBHOOK"))
 
     # create sections in message
     menus = create_message(message)
 
     # create a link to the repo
-    code_section = pymsteams.cardsection()
-    code_section.text(
+    message.addSection(
         "<div style='text-align: right'><sup><a href='https://github.com/budel/Mensa-Bot'>Code</a></sup></div>"
     )
-    message.addSection(code_section)
 
     message.printme()
     menus_file = "menus.json"
@@ -42,13 +39,10 @@ def create_message(message):
     today = datetime.date.today()
     menus = []
     for menu_fn in [getMFCMenu, getUKSHMenu, getMensaMenu, getBurgerMenu]:
-        section = pymsteams.cardsection()
-        section.enableMarkdown()
         menu = menu_fn(today)
         menus.append(menu)
         if not menu.is_empty():
-            section.text(str(menu))
-        message.addSection(section)
+            message.addSection(str(menu))
     return menus
 
 
@@ -91,8 +85,8 @@ def what_is_different(cur, prev):
 
 
 def send_correction(text):
-    message = pymsteams.connectorcard(os.getenv("WEBHOOK"))
-    message.text(f"Korrektur:\n{text}")
+    message = Message(os.getenv("WEBHOOK"))
+    message.addSection(f"Korrektur:<br>{text}")
     message.send()
 
 

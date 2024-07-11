@@ -24,7 +24,7 @@ class BurgerMenu(Menu):
 
     def __str__(self):
         return f"""
-## [{self.title}]({self.url})
+<h2><a href={self.url}>{self.title}</a></h2>
 <div style="width:400px; height:135px; border:2px solid black; padding:10px;">
     <strong>Special Menü</strong>
     <ul style="list-style-type: none; padding: 0; margin: 0;">

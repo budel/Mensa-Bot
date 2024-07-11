@@ -7,7 +7,7 @@ class MenuItem:
         return self.name < other.name
 
     def __str__(self):
-        return f"{self.name}  \n{self.price}"
+        return f"{self.name}<br>{self.price}"
 
     def is_same(self, other):
         return self.name == other.name and self.price == other.price
@@ -27,8 +27,8 @@ class Menu:
         self.items = []
 
     def __str__(self):
-        header = f"## [{self.title}]({self.url})"
-        return f"{header}\n- " + "\n- ".join([str(i) for i in self.items])
+        header = f"<h2><a href={self.url}>{self.title}</a></h2>"
+        return f"{header}\n<ul><li>" + "\n<li>".join([str(i) for i in self.items]) + "\n</ul>"
 
     def add_item(self, name, price):
         new_item = MenuItem(name, price)
