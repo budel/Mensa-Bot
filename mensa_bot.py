@@ -61,13 +61,14 @@ def check_for_updates(menu_list, menus_file="menus.json", send_on_diff=True):
 
 
 def what_is_different(cur, prev):
-    what = f"## [{prev.title}]({prev.url})"
+    what = f"<h2><a href={prev.url}>{prev.title}</a></h2>"
+    what += "\n<ul>"
     for item in prev.items:
         if cur.has_item(item):
-            what += "\n- " + str(item) + "\n"
+            what += "\n<li> " + str(item) + "\n"
             cur.remove_item(item)
         else:
-            what += "\n- <s>" + str(item) + "</s>  \n"
+            what += "\n<li> <s>" + str(item) + "</s>  \n"
 
     # generate the new output
     idx = 0
@@ -76,11 +77,12 @@ def what_is_different(cur, prev):
         idx = what.find("</s>  \n", idx)
         offset = len("</s>  \n")
         if idx != -1:
-            what = what[: idx + offset] + new_line + what[idx + offset :]
-            idx += offset + len(new_line)
+            what = what[: idx + offset] + "<br>" + new_line + what[idx + offset :]
+            idx += offset + len("<br>" + new_line)
         else:
-            what += new_line
+            what += "<li>" + new_line
 
+    what += "\n</ul>"
     return what
 
 
