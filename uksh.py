@@ -1,3 +1,5 @@
+from logging import getLogger
+logger = getLogger(__name__)
 import os
 import shutil
 import fitz  # PyMuPDF
@@ -33,11 +35,14 @@ def find_pdf(url, today):
         for pdf_link in re.findall('href="[^"]+.pdf"', res.text)
         if f"KW+{kw:0>2}" in pdf_link
     ]
-
+    logger.info(f"pdf_link for {url}: {pdf_link[0]}")
     return pdf_link[0]
 
 
 def getMFCMenu(today):
+    global logger
+    logger = getLogger(__name__ + "_mfc")
+    logger.debug("getMFCMenu called")
     try:
         url = find_pdf(MFC_URL, today)
         text, ocr, prices = parse_pdf(
@@ -52,10 +57,14 @@ def getMFCMenu(today):
         )
         return compute_menu(text, ocr, prices, "MFC Cafeteria", url)
     except Exception as e:
+        logger.debug(f"Exception in getMFCMenu: {e}")
         return Menu("MFC Cafeteria", url)
 
 
 def getUKSHMenu(today):
+    global logger
+    logger = getLogger(__name__ + "_uksh")
+    logger.debug("getUKSHMenu called")
     try:
         url = find_pdf(UKSH_URL, today)
         text, ocr, prices = parse_pdf(
@@ -70,12 +79,14 @@ def getUKSHMenu(today):
         )
         return compute_menu(text, ocr, prices, "UKSH Bistro", url)
     except Exception as e:
+        logger.debug(f"Exception in getUKSHMenu: {e}")
         return Menu("UKSH Bistro", url)
 
 
 def parse_pdf(
     url, weekday, x_init, width, y_init, height, cols, price_on_lhs, filename="menu.pdf"
 ):
+    logger.debug(f"parse_pdf")
     download_pdf(url, filename)
     shutil.copy(filename, "tmp.pdf")
     auto_crop_pdf("tmp.pdf", filename)
@@ -87,6 +98,7 @@ def parse_pdf(
 
 
 def download_pdf(url, filename):
+    logger.debug(f"download_pdf")
     response = requests.get(url)
     if response.status_code != 200:
         raise Exception(f"Failed to download {url}")
@@ -95,6 +107,7 @@ def download_pdf(url, filename):
 
 
 def auto_crop_pdf(input_pdf, output_pdf):
+    logger.debug(f"auto_crop_pdf")
     doc = fitz.open(input_pdf)
     for page in doc:
         blocks = page.get_text("dict")["blocks"]
@@ -114,6 +127,7 @@ def auto_crop_pdf(input_pdf, output_pdf):
 def extract_text_with_ocr(
     filename, weekday, x_init, width, y_init, height, cols, price_on_lhs
 ):
+    logger.debug(f"extract_text_with_ocr")
     texts = []
     prices = []
     with fitz.open(filename) as pdf:
@@ -134,6 +148,7 @@ def extract_text_with_ocr(
 
 
 def extract_text_area(page, x1, y1, x2, y2, price_on_lhs):
+    logger.debug(f"extract_text_area {page}, {x1}, {y1}, {x2}, {y2}, {price_on_lhs}")
     # Convert to image and crop
     cell = preprocessImage(page, x1, y1, x2, y2)
 
@@ -157,10 +172,12 @@ def extract_text_area(page, x1, y1, x2, y2, price_on_lhs):
     # Remove all spaces and add space before and after "/"
     price = price.replace(" ", "").replace("/", " / ")
 
+    logger.info(f"extract_text_area found {text}, {price}")
     return text, price
 
 
 def preprocessImage(page, x1, y1, x2, y2, dpi=300):
+    logger.debug(f"preprocessImage {page}, {x1}, {y1}, {x2}, {y2}")
     pix = page.get_pixmap(dpi=dpi)
     image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
     cropped_image = image.crop((x1, y1, x2, y2))
@@ -170,15 +187,18 @@ def preprocessImage(page, x1, y1, x2, y2, dpi=300):
 
 
 def extract_text(filename):
+    logger.debug(f"extract_text")
     text = ""
     with fitz.open(filename) as pdf:
         for page_num in range(pdf.page_count):
             page = pdf[page_num]
             text += page.get_text(sort=True)
+    logger.info(f"extract_text found {text}")
     return text
 
 
 def compute_menu(text, ocr, prices, title, url):
+    logger.debug(f"compute_menu")
     filtered_text = filter_text(text)
     filtered_ocr = [filter_text(t) for t in ocr]
     filtered_ocr = [t for t in filtered_ocr if t]  # remove empty results
@@ -188,6 +208,7 @@ def compute_menu(text, ocr, prices, title, url):
 
 
 def filter_text(text):
+    logger.debug(f"filter_text")
     lines = text.splitlines()
     exclude = r"\d+|Wochentag|Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Speiseplan MFC Cafeteria|Speiseplan Bistro|/|Änderungen vorbehalten|MFC Cafeteria|Campus Lübeck|Zusatzgericht|Vegetarisch"
     filtered_text = [
@@ -199,6 +220,7 @@ def filter_text(text):
 
 
 def find_matches(ocrs, texts, prices, menu):
+    logger.debug(f"find_matches")
     for meal, price in zip(ocrs, prices):
         lines = []
         scores = []

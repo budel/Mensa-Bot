@@ -1,5 +1,8 @@
 import datetime
 import json
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='mensa_bot.log', encoding='utf-8', level=logging.DEBUG)
 import os
 import sys
 
@@ -13,6 +16,7 @@ from uksh import getMFCMenu, getUKSHMenu
 
 
 def main():
+    logger.debug(f"main")
     load_dotenv()
     message = Message(os.getenv("WEBHOOK"))
 
@@ -36,6 +40,7 @@ def main():
 
 
 def create_message(message):
+    logger.debug(f"create_message")
     today = datetime.date.today()
     menus = []
     for menu_fn in [getMFCMenu, getUKSHMenu, getMensaMenu, getBurgerMenu]:
@@ -47,6 +52,7 @@ def create_message(message):
 
 
 def check_for_updates(menu_list, menus_file="menus.json", send_on_diff=True):
+    logger.debug(f"check_for_updates")
     if os.path.exists(menus_file):
         with open(menus_file, "r") as f:
             prev_menus = json.load(f)
@@ -61,6 +67,7 @@ def check_for_updates(menu_list, menus_file="menus.json", send_on_diff=True):
 
 
 def what_is_different(cur, prev):
+    logger.debug(f"what_is_different")
     what = f"<h2><a href={prev.url}>{prev.title}</a></h2>"
     what += "\n<ul>"
     for item in prev.items:
@@ -87,6 +94,7 @@ def what_is_different(cur, prev):
 
 
 def send_correction(text):
+    logger.debug(f"send_correction")
     message = Message(os.getenv("WEBHOOK"))
     message.addSection(f"Korrektur:<br>{text}")
     message.send()
