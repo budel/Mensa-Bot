@@ -10,27 +10,21 @@ MENSA_URL = "https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=8#mensapl
 
 def getMensaMenu(today):
     menu = Menu("Studenten Mensa", MENSA_URL)
-    
+
     logger.debug(f"getMensaMenu")
-    day = today.strftime("%a")
-    refresh()
-    url = f"https://speiseplan.mcloud.digital/meals?day={day}"
+    day = today.strftime("%Y-%m-%d")
+    url = f"https://speiseplan.mcloud.digital/v2/meals?location=HL_ME&date={day}"
     response = requests.get(url)
     if response.status_code == 200:
-        menu_dict = json.loads(response.text)[0]
+        menu_dict = json.loads(response.text)
     else:
         logger.debug(f"Failed to download {url}")
         menu.add_item(f"Konnte {url} nicht erreichen.", "")
         return menu
 
-    for meal in menu_dict["meals"]:
-        if meal["location"] == "Mensa":
-            menu.add_item(meal["name"], meal["price"])
+    for meal in menu_dict["data"]:
+        prices = " / ".join(map(str, meal["price"].values()))
+        prices = "" if prices == "0.0 / 0.0 / 0.0" else prices
+        menu.add_item(meal["name"], prices)
 
     return menu
-
-
-def refresh():
-    logger.debug(f"refresh")
-    url = f"https://speiseplan.mcloud.digital/refresh"
-    return requests.get(url)
