@@ -1,3 +1,4 @@
+import locale
 import logging
 
 logger = logging.getLogger(__name__)
@@ -23,8 +24,13 @@ def getMensaMenu(today):
         return menu
 
     for meal in menu_dict["data"]:
-        prices = " / ".join(map(str, meal["price"].values()))
+        prices = " / ".join(map(formatPrice, meal["price"].values()))
         prices = "" if prices == "0.0 / 0.0 / 0.0" else prices
         menu.add_item(meal["name"], prices)
 
     return menu
+
+
+def formatPrice(price):
+    locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
+    return locale.format_string("%.2f €", price, grouping=True)
