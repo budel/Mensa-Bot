@@ -1,14 +1,17 @@
 import datetime
 import json
 import logging
+
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename='mensa_bot.log', encoding='utf-8', filemode = "w+", level=logging.DEBUG)
+logging.basicConfig(
+    filename="mensa_bot.log", encoding="utf-8", filemode="w+", level=logging.DEBUG
+)
 import os
 import sys
 
-from burger import getBurgerMenu
 from dotenv import load_dotenv
 
+from burger import getBurgerMenu
 from mensa import getMensaMenu
 from menu import Menu
 from message import Message
