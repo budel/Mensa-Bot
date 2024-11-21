@@ -26,7 +26,7 @@ def getMensaMenu(today):
     for meal in menu_dict["data"]:
         prices = " / ".join(map(formatPrice, meal["price"].values()))
         prices = "" if prices == "0.0 / 0.0 / 0.0" else prices
-        menu.add_item(meal["name"], prices)
+        menu.add_item(meal["name"], prices, vegetarian=meal["vegetarian"], vegan=meal["vegan"])
 
     return menu
 
