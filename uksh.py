@@ -1,4 +1,5 @@
 from logging import getLogger
+
 logger = getLogger(__name__)
 import os
 import shutil
@@ -201,8 +202,6 @@ def compute_menu(text, ocr, prices, title, url):
     logger.debug(f"compute_menu")
     filtered_text = filter_text(text)
     filtered_ocr = [filter_text(t) for t in ocr]
-    filtered_ocr = [t for t in filtered_ocr if t]  # remove empty results
-    prices = [p for p in prices if p]  # remove empty results
     menu = Menu(title, url)
     return find_matches(filtered_ocr, filtered_text, prices, menu)
 
@@ -219,9 +218,11 @@ def filter_text(text):
     return filtered_text
 
 
-def find_matches(ocrs, texts, prices, menu):
+def find_matches(ocrs, texts, prices, menu, veggie_index=1):
     logger.debug(f"find_matches")
-    for meal, price in zip(ocrs, prices):
+    for i, (meal, price) in enumerate(zip(ocrs, prices)):
+        if not meal or not price:
+            continue
         lines = []
         scores = []
         for line in meal:
@@ -234,5 +235,5 @@ def find_matches(ocrs, texts, prices, menu):
             idx = np.argmin(scores)
             del lines[idx]
             del scores[idx]
-        menu.add_item(" ".join(lines), price)
+        menu.add_item(" ".join(lines), price, vegetarian=i == veggie_index)
     return menu
