@@ -1,7 +1,9 @@
 class MenuItem:
-    def __init__(self, name, price):
+    def __init__(self, name, price, vegetarian, vegan):
         self.name = name
         self.price = price
+        self.vegetarian = vegetarian
+        self.vegan = vegan
 
     def __lt__(self, other):
         return self.name < other.name
@@ -12,12 +14,25 @@ class MenuItem:
     def is_same(self, other):
         return self.name == other.name and self.price == other.price
 
+    def is_veggie(self):
+        return self.vegetarian or self.vegan
+
     def to_dict(self):
-        return {"name": self.name, "price": self.price}
+        return {
+            "name": self.name,
+            "price": self.price,
+            "vegetarian": self.vegetarian,
+            "vegan": self.vegan,
+        }
 
     @classmethod
     def from_dict(cls, data):
-        return cls(name=data["name"], price=data["price"])
+        return cls(
+            name=data["name"],
+            price=data["price"],
+            vegetarian=data["vegetarian"],
+            vegan=data["vegan"],
+        )
 
 
 class Menu:
@@ -28,10 +43,18 @@ class Menu:
 
     def __str__(self):
         header = f"<h2><a href={self.url}>{self.title}</a></h2>"
-        return f"{header}\n<ul><li>" + "\n<li>".join([str(i) for i in self.items]) + "\n</ul>"
+        list_items = "\n".join(
+            (
+                f"<li>&#127793; {str(i)}"
+                if i.is_veggie()
+                else f"<li>{str(i)}"
+            )
+            for i in self.items
+        )
+        return f"{header}\n<ul>\n{list_items}\n</ul>"
 
-    def add_item(self, name, price):
-        new_item = MenuItem(name, price)
+    def add_item(self, name, price, vegetarian=False, vegan=False):
+        new_item = MenuItem(name, price, vegetarian, vegan)
         self.items.append(new_item)
 
     def is_empty(self):
