@@ -9,7 +9,8 @@ class MenuItem:
         return self.name < other.name
 
     def __str__(self):
-        return f"{self.name}<br>{self.price}"
+        v_icon = "&#127793;" if self.is_veggie() else ""
+        return f"{v_icon} {self.name}<br>{self.price}"
 
     def is_same(self, other):
         return self.name == other.name and self.price == other.price
@@ -43,14 +44,7 @@ class Menu:
 
     def __str__(self):
         header = f"<h2><a href={self.url}>{self.title}</a></h2>"
-        list_items = "\n".join(
-            (
-                f"<li>&#127793; {str(i)}"
-                if i.is_veggie()
-                else f"<li>{str(i)}"
-            )
-            for i in self.items
-        )
+        list_items = "\n".join(f"<li>{str(i)}" for i in self.items)
         return f"{header}\n<ul>\n{list_items}\n</ul>"
 
     def add_item(self, name, price, vegetarian=False, vegan=False):
