@@ -88,5 +88,5 @@ class Menu:
         menu = cls(title=data["title"], url=data["url"])
         # Add each item from the dictionary to the menu
         for item in data["items"]:
-            menu.add_item(item["name"], item["price"])
+            menu.add_item(item["name"], item["price"], item["vegetarian"], item["vegan"])
         return menu
