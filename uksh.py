@@ -134,24 +134,74 @@ def extract_text_with_ocr(
     with fitz.open(filename) as pdf:
         assert pdf.page_count == 1
         page = pdf[0]
-        for y in range(
-            y_init + height * weekday,
-            y_init + height * (weekday + 1),
-            height,
-        ):
-            for x in range(x_init, x_init + width * cols, width):
-                text, price = extract_text_area(
-                    page, x, y, x + width, y + height, price_on_lhs
-                )
-                texts += [text]
-                prices += [price]
+        row = extract_weekday_row(page, weekday)
+        for i in range(cols):
+            text, price = extract_text_area(row, i, cols, price_on_lhs)
+            texts += [text]
+            prices += [price]
     return texts, prices
 
 
-def extract_text_area(page, x1, y1, x2, y2, price_on_lhs):
-    logger.debug(f"extract_text_area {page}, {x1}, {y1}, {x2}, {y2}, {price_on_lhs}")
+def extract_weekday_row(page, weekday):
+    logger.debug(f"extract_weekday_row {page}, {weekday}")
+    pil_image = preprocessImage(page)
+    image = np.asarray(pil_image)
+    row_boundaries = detect_boundaries(image, 1)
+    biggest_rows = get_biggest_boundaries(row_boundaries, 5)
+    weekday_crops = [
+        pil_image.crop((0, upper, image.shape[1], lower))
+        for (upper, lower) in sorted(biggest_rows)
+    ]
+    return weekday_crops[weekday]
+
+
+def preprocessImage(page, dpi=300):
+    logger.debug(f"preprocessImage {page}")
+    pix = page.get_pixmap(dpi=dpi)
+    image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+    # Convert the cropped image to grayscale
+    gray_image = image.convert("L")
+    return gray_image
+
+
+def get_biggest_boundaries(boundaries, n_cells):
+    logger.debug(f"get_biggest_boundaries {boundaries}, {n_cells}")
+    start = [x for _, x in sorted(zip(np.diff(boundaries), boundaries), reverse=True)]
+    end = [x for _, x in sorted(zip(np.diff(boundaries), boundaries[1:]), reverse=True)]
+    return [(start, end) for start, end in zip(start[:n_cells], end[:n_cells])]
+
+
+def detect_boundaries(image, axis):
+    logger.debug(f"detect_boundaries {image}, {axis}")
+    modes = np.apply_along_axis(mode, axis, image)
+    previous_pixel = modes[0]
+    boundaries = []
+    for i, current_pixel in enumerate(modes):
+        if previous_pixel != current_pixel:
+            boundaries.append(i)
+            previous_pixel = current_pixel
+
+    return [0] + boundaries + [len(modes)]
+
+
+def mode(a):
+    u, c = np.unique(a, return_counts=True)
+    return u[c.argmax()]
+
+
+def extract_text_area(row, index, n_cells, price_on_lhs):
+    logger.debug(f"extract_text_area {row}, {price_on_lhs}")
+    # TODO Compute this outside of loop
+    image = np.asarray(row)
+    col_boundaries = detect_boundaries(image, 0)
+    # n_cells+1 = Include the weekday cell as well
+    biggest_cells = get_biggest_boundaries(col_boundaries, n_cells + 1)
+    col_images = [
+        row.crop((left, 0, right, image.shape[0]))
+        for (left, right) in sorted(biggest_cells)
+    ]
+    cell = col_images[index + 1]  # skip weekday cell
     # Convert to image and crop
-    cell = preprocessImage(page, x1, y1, x2, y2)
 
     # Perform OCR on the grayscale image using Tesseract
     text = pytesseract.image_to_string(cell, lang="deu")
@@ -175,16 +225,6 @@ def extract_text_area(page, x1, y1, x2, y2, price_on_lhs):
 
     logger.info(f"extract_text_area found {text}, {price}")
     return text, price
-
-
-def preprocessImage(page, x1, y1, x2, y2, dpi=300):
-    logger.debug(f"preprocessImage {page}, {x1}, {y1}, {x2}, {y2}")
-    pix = page.get_pixmap(dpi=dpi)
-    image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-    cropped_image = image.crop((x1, y1, x2, y2))
-    # Convert the cropped image to grayscale
-    gray_image = cropped_image.convert("L")
-    return gray_image
 
 
 def extract_text(filename):
