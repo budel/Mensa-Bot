@@ -15,14 +15,6 @@ from menu import Menu
 
 MFC_URL = "https://www.uksh.de/ssn/Unser+Speisenangebot/Campus+L%C3%BCbeck/MFC+Cafeteria+im+UKSH_Verwaltungszentrum.html"
 UKSH_URL = "https://www.uksh.de/ssn/Unser+Speisenangebot/Campus+L%C3%BCbeck/UKSH_Bistro+L%C3%BCbeck-p-346.html"
-MFC_X_INIT = 325
-MFC_WIDTH = 870
-MFC_Y_INIT = 345
-MFC_HEIGHT = 315
-UKSH_X_INIT = 370
-UKSH_WIDTH = 650
-UKSH_Y_INIT = 336
-UKSH_HEIGHT = 252
 PRICE_HEIGHT = 60
 
 
@@ -46,16 +38,7 @@ def getMFCMenu(today):
     logger.debug("getMFCMenu called")
     try:
         url = find_pdf(MFC_URL, today)
-        text, ocr, prices = parse_pdf(
-            url,
-            today.weekday(),
-            MFC_X_INIT,
-            MFC_WIDTH,
-            MFC_Y_INIT,
-            MFC_HEIGHT,
-            3,
-            price_on_lhs=False,
-        )
+        text, ocr, prices = parse_pdf(url, today.weekday(), 3, price_on_lhs=False)
         return compute_menu(text, ocr, prices, "MFC Cafeteria", url)
     except Exception as e:
         logger.debug(f"Exception in getMFCMenu: {e}")
@@ -68,33 +51,20 @@ def getUKSHMenu(today):
     logger.debug("getUKSHMenu called")
     try:
         url = find_pdf(UKSH_URL, today)
-        text, ocr, prices = parse_pdf(
-            url,
-            today.weekday(),
-            UKSH_X_INIT,
-            UKSH_WIDTH,
-            UKSH_Y_INIT,
-            UKSH_HEIGHT,
-            4,
-            price_on_lhs=True,
-        )
+        text, ocr, prices = parse_pdf(url, today.weekday(), 4, price_on_lhs=True)
         return compute_menu(text, ocr, prices, "UKSH Bistro", url)
     except Exception as e:
         logger.debug(f"Exception in getUKSHMenu: {e}")
         return Menu("UKSH Bistro", url)
 
 
-def parse_pdf(
-    url, weekday, x_init, width, y_init, height, cols, price_on_lhs, filename="menu.pdf"
-):
+def parse_pdf(url, weekday, cols, price_on_lhs, filename="menu.pdf"):
     logger.debug(f"parse_pdf")
     download_pdf(url, filename)
     shutil.copy(filename, "tmp.pdf")
     auto_crop_pdf("tmp.pdf", filename)
     os.remove("tmp.pdf")
-    texts, prices = extract_text_with_ocr(
-        filename, weekday, x_init, width, y_init, height, cols, price_on_lhs
-    )
+    texts, prices = extract_text_with_ocr(filename, weekday, cols, price_on_lhs)
     return extract_text(filename), texts, prices
 
 
@@ -125,9 +95,7 @@ def auto_crop_pdf(input_pdf, output_pdf):
     doc.close()
 
 
-def extract_text_with_ocr(
-    filename, weekday, x_init, width, y_init, height, cols, price_on_lhs
-):
+def extract_text_with_ocr(filename, weekday, cols, price_on_lhs):
     logger.debug(f"extract_text_with_ocr")
     texts = []
     prices = []
