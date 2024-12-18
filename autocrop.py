@@ -16,51 +16,31 @@ def detect_boundaries(image, axis):
             boundaries.append(i)
             previous_pixel = current_pixel
 
-    return boundaries
+    return [0] + boundaries + [len(modes)]
+
+
+def get_biggest_boundaries(boundaries, n_cells):
+    start = [x for _, x in sorted(zip(np.diff(boundaries), boundaries), reverse=True)]
+    end = [x for _, x in sorted(zip(np.diff(boundaries), boundaries[1:]), reverse=True)]
+    return [(start, end) for start, end in zip(start[:n_cells], end[:n_cells])]
 
 
 pil_image = Image.open("temp.png").convert("L")
-image = np.asarray(Image.open("temp.png").convert("L"))
-
+image = np.asarray(pil_image)
 row_boundaries = detect_boundaries(image, 1)
-row_boundaries = [0] + row_boundaries
-row_boundaries += [image.shape[0]]
-upper_boundaries = [
-    x for _, x in sorted(zip(np.diff(row_boundaries), row_boundaries), reverse=True)
-]
-lower_boundaries = [
-    x for _, x in sorted(zip(np.diff(row_boundaries), row_boundaries[1:]), reverse=True)
+biggest_rows = get_biggest_boundaries(row_boundaries, 5)
+print("Monday to Friday:", sorted(biggest_rows))
+weekday_crops = [
+    pil_image.crop((0, upper, image.shape[1], lower))
+    for (upper, lower) in sorted(biggest_rows)
 ]
 
-print("Monday to Friday:", sorted(zip(upper_boundaries[:5], lower_boundaries[:5])))
-
-for i, (upper, lower) in enumerate(
-    sorted(zip(upper_boundaries[:5], lower_boundaries[:5]))
-):
-    row_image = pil_image.crop((0, upper, image.shape[1], lower))
-    row_image.save(f"row_{i}.png")
-
-n_cells = 4
-pil_image = Image.open("row_0.png")
-image = np.asarray(Image.open("row_0.png"))
+pil_image = weekday_crops[0]
+image = np.asarray(pil_image)
 col_boundaries = detect_boundaries(image, 0)
-col_boundaries = [0] + col_boundaries
-col_boundaries += [image.shape[1]]
-print(f"{col_boundaries=}")
-print(f"{np.diff(col_boundaries)=}")
-left_boundaries = [
-    x for _, x in sorted(zip(np.diff(col_boundaries), col_boundaries), reverse=True)
-]
-right_boundaries = [
-    x for _, x in sorted(zip(np.diff(col_boundaries), col_boundaries[1:]), reverse=True)
-]
-print(
-    "Left to Right:", sorted(zip(left_boundaries[:n_cells], right_boundaries[:n_cells]))
-)
+biggest_cells = get_biggest_boundaries(col_boundaries, 4)
+print("Left to Right:", sorted(biggest_cells))
 
-for i, (left, right) in enumerate(
-    sorted(zip(left_boundaries[:n_cells], right_boundaries[:n_cells]))
-):
-    # (left upper right lower)
+for i, (left, right) in enumerate(sorted(biggest_cells)):
     col_image = pil_image.crop((left, 0, right, image.shape[0]))
     col_image.save(f"col_{i}.png")
