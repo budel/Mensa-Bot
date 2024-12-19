@@ -104,7 +104,7 @@ def extract_text_with_ocr(filename, weekday, cols, price_on_lhs):
         page = pdf[0]
         row = extract_weekday_row(page, weekday)
         for i in range(cols):
-            text, price = extract_text_area(row, i, cols, price_on_lhs)
+            text, price = extract_text_area(row, i, price_on_lhs)
             texts += [text]
             prices += [price]
     return texts, prices
@@ -115,7 +115,7 @@ def extract_weekday_row(page, weekday):
     pil_image = preprocessImage(page)
     image = np.asarray(pil_image)
     row_boundaries = detect_boundaries(image, 1)
-    biggest_rows = get_biggest_boundaries(row_boundaries, 5)
+    biggest_rows = get_biggest_boundaries(row_boundaries)
     weekday_crops = [
         pil_image.crop((0, upper, image.shape[1], lower))
         for (upper, lower) in sorted(biggest_rows)
@@ -132,11 +132,16 @@ def preprocessImage(page, dpi=300):
     return gray_image
 
 
-def get_biggest_boundaries(boundaries, n_cells):
-    logger.debug(f"get_biggest_boundaries {boundaries}, {n_cells}")
-    start = [x for _, x in sorted(zip(np.diff(boundaries), boundaries), reverse=True)]
-    end = [x for _, x in sorted(zip(np.diff(boundaries), boundaries[1:]), reverse=True)]
-    return [(start, end) for start, end in zip(start[:n_cells], end[:n_cells])]
+def get_biggest_boundaries(boundaries):
+    logger.debug(f"get_biggest_boundaries {boundaries}")
+    # we assume that our rows/column are bigger than the first row/column
+    diffs = np.diff(boundaries)
+    start = [b for d, b in sorted(zip(diffs, boundaries), reverse=True) if d > diffs[0]]
+    end = [
+        b for d, b in sorted(zip(diffs, boundaries[1:]), reverse=True) if d > diffs[0]
+    ]
+    print(start, end)
+    return list(zip(start, end))
 
 
 def detect_boundaries(image, axis):
@@ -157,18 +162,17 @@ def mode(a):
     return u[c.argmax()]
 
 
-def extract_text_area(row, index, n_cells, price_on_lhs):
-    logger.debug(f"extract_text_area {row}, {price_on_lhs}")
+def extract_text_area(row, index, price_on_lhs):
+    logger.debug(f"extract_text_area {row}, {index}, {price_on_lhs}")
     # TODO Compute this outside of loop
     image = np.asarray(row)
     col_boundaries = detect_boundaries(image, 0)
-    # n_cells+1 = Include the weekday cell as well
-    biggest_cells = get_biggest_boundaries(col_boundaries, n_cells + 1)
+    biggest_cells = get_biggest_boundaries(col_boundaries)
     col_images = [
         row.crop((left, 0, right, image.shape[0]))
         for (left, right) in sorted(biggest_cells)
     ]
-    cell = col_images[index + 1]  # skip weekday cell
+    cell = col_images[index]
     # Convert to image and crop
 
     # Perform OCR on the grayscale image using Tesseract
