@@ -38,7 +38,7 @@ def getMFCMenu(today):
     logger.debug("getMFCMenu called")
     try:
         url = find_pdf(MFC_URL, today)
-        text, ocr, prices = parse_pdf(url, today.weekday(), 3, price_on_lhs=False)
+        text, ocr, prices = parse_pdf(url, today.weekday(), price_on_lhs=False)
         return compute_menu(text, ocr, prices, "MFC Cafeteria", url)
     except Exception as e:
         logger.debug(f"Exception in getMFCMenu: {e}")
@@ -51,20 +51,20 @@ def getUKSHMenu(today):
     logger.debug("getUKSHMenu called")
     try:
         url = find_pdf(UKSH_URL, today)
-        text, ocr, prices = parse_pdf(url, today.weekday(), 4, price_on_lhs=True)
+        text, ocr, prices = parse_pdf(url, today.weekday(), price_on_lhs=True)
         return compute_menu(text, ocr, prices, "UKSH Bistro", url)
     except Exception as e:
         logger.debug(f"Exception in getUKSHMenu: {e}")
         return Menu("UKSH Bistro", url)
 
 
-def parse_pdf(url, weekday, cols, price_on_lhs, filename="menu.pdf"):
+def parse_pdf(url, weekday, price_on_lhs, filename="menu.pdf"):
     logger.debug(f"parse_pdf")
     download_pdf(url, filename)
     shutil.copy(filename, "tmp.pdf")
     auto_crop_pdf("tmp.pdf", filename)
     os.remove("tmp.pdf")
-    texts, prices = extract_text_with_ocr(filename, weekday, cols, price_on_lhs)
+    texts, prices = extract_text_with_ocr(filename, weekday, price_on_lhs)
     return extract_text(filename), texts, prices
 
 
@@ -95,32 +95,39 @@ def auto_crop_pdf(input_pdf, output_pdf):
     doc.close()
 
 
-def extract_text_with_ocr(filename, weekday, cols, price_on_lhs):
+def extract_text_with_ocr(filename, weekday, price_on_lhs):
     logger.debug(f"extract_text_with_ocr")
     texts = []
     prices = []
     with fitz.open(filename) as pdf:
         assert pdf.page_count == 1
         page = pdf[0]
-        row = extract_weekday_row(page, weekday)
-        for i in range(cols):
-            text, price = extract_text_area(row, i, price_on_lhs)
+        pil_image = preprocessImage(page)
+        row = extract_weekday_row(pil_image)
+        for cell in extract_menu_cols(row[weekday]):
+            text, price = extract_text_area(row, cell, price_on_lhs)
             texts += [text]
             prices += [price]
     return texts, prices
 
 
-def extract_weekday_row(page, weekday):
-    logger.debug(f"extract_weekday_row {page}, {weekday}")
-    pil_image = preprocessImage(page)
-    image = np.asarray(pil_image)
-    row_boundaries = detect_boundaries(image, 1)
+def extract_weekday_row(pil_image):
+    logger.debug(f"extract_weekday_row {pil_image}")
+    row_boundaries = detect_boundaries(np.asarray(pil_image), 1)
     biggest_rows = get_biggest_boundaries(row_boundaries)
-    weekday_crops = [
-        pil_image.crop((0, upper, image.shape[1], lower))
+    return [
+        pil_image.crop((0, upper, pil_image.width, lower))
         for (upper, lower) in sorted(biggest_rows)
     ]
-    return weekday_crops[weekday]
+
+
+def extract_menu_cols(row):
+    logger.debug(f"extract_menu_cols {row}")
+    col_boundaries = detect_boundaries(np.asarray(row), 0)
+    biggest_cols = get_biggest_boundaries(col_boundaries)
+    return [
+        row.crop((left, 0, right, row.height)) for (left, right) in sorted(biggest_cols)
+    ]
 
 
 def preprocessImage(page, dpi=300):
@@ -140,7 +147,6 @@ def get_biggest_boundaries(boundaries):
     end = [
         b for d, b in sorted(zip(diffs, boundaries[1:]), reverse=True) if d > diffs[0]
     ]
-    print(start, end)
     return list(zip(start, end))
 
 
@@ -162,19 +168,8 @@ def mode(a):
     return u[c.argmax()]
 
 
-def extract_text_area(row, index, price_on_lhs):
-    logger.debug(f"extract_text_area {row}, {index}, {price_on_lhs}")
-    # TODO Compute this outside of loop
-    image = np.asarray(row)
-    col_boundaries = detect_boundaries(image, 0)
-    biggest_cells = get_biggest_boundaries(col_boundaries)
-    col_images = [
-        row.crop((left, 0, right, image.shape[0]))
-        for (left, right) in sorted(biggest_cells)
-    ]
-    cell = col_images[index]
-    # Convert to image and crop
-
+def extract_text_area(row, cell, price_on_lhs):
+    logger.debug(f"extract_text_area {row}, {cell}, {price_on_lhs}")
     # Perform OCR on the grayscale image using Tesseract
     text = pytesseract.image_to_string(cell, lang="deu")
 
