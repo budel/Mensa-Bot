@@ -67,19 +67,21 @@ def parse_pdf(url, weekday, price_on_lhs, filename="menu.pdf"):
     texts = []
     prices = []
     extracted_text = ""
+    dpi = 300
+    f = 72 / dpi
     with fitz.open(filename) as pdf:
         assert pdf.page_count == 1
         page = pdf[0]
-        pil_image = preprocessImage(page)
-        rows, row_indices = extract_weekday_rows(pil_image)
-        cols, col_indices = extract_menu_cols(rows[weekday])
-        for col in cols:
+        pil_image = preprocessImage(page, dpi=dpi)
+        rows, ys = extract_weekday_rows(pil_image)
+        y = ys[weekday]
+        cols, xs = extract_menu_cols(rows[weekday])
+        for col, x in zip(cols, xs):
             text, price = extract_text_area(col, price_on_lhs)
             texts += [text]
             prices += [price]
-        # rect = fitz.Rect(x0, y0, x1, y1)
-        # text += page.get_text(sort=True, clip=rect)
-        extracted_text += page.get_text(sort=True)
+            rect = fitz.Rect(x[0] * f, y[0] * f, x[1] * f, y[1] * f)
+            extracted_text += page.get_text(sort=True, clip=rect)
     logger.info(f"extract_text found {extracted_text}")
     return extracted_text, texts, prices
 
@@ -118,7 +120,7 @@ def extract_weekday_rows(pil_image):
     return [
         pil_image.crop((0, upper, pil_image.width, lower))
         for (upper, lower) in sorted(biggest_rows)
-    ], biggest_rows
+    ], sorted(biggest_rows)
 
 
 def extract_menu_cols(row):
@@ -127,7 +129,7 @@ def extract_menu_cols(row):
     biggest_cols = get_biggest_boundaries(col_boundaries)
     return [
         row.crop((left, 0, right, row.height)) for (left, right) in sorted(biggest_cols)
-    ], biggest_cols
+    ], sorted(biggest_cols)
 
 
 def preprocessImage(page, dpi=300):
