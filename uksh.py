@@ -103,7 +103,7 @@ def parse_pdf(weekday, menu, filename="menu.pdf", dpi=300, veggie_index=1):
         cols, xs = extract_menu_cols(rows[weekday])
         for i, (col, x) in enumerate(zip(cols, xs)):
             text, price = extract_text(page, x, y, dpi=dpi)
-            if not text or not price:
+            if not text:
                 continue
             menu.add_item(" ".join(text), price, vegetarian=i == veggie_index)
     return menu
