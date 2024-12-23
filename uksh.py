@@ -37,7 +37,7 @@ def getMFCMenu(today):
     logger = getLogger(__name__ + "_mfc")
     logger.debug("getMFCMenu called")
     try:
-        url = find_pdf(MFC_URL, today)
+        url = ""  # find_pdf(MFC_URL, today)
         text, ocr, prices = parse_pdf(url, today.weekday(), price_on_lhs=False)
         return compute_menu(text, ocr, prices, "MFC Cafeteria", url)
     except Exception as e:
@@ -59,13 +59,29 @@ def getUKSHMenu(today):
 
 
 def parse_pdf(url, weekday, price_on_lhs, filename="menu.pdf"):
-    logger.debug(f"parse_pdf")
-    download_pdf(url, filename)
-    shutil.copy(filename, "tmp.pdf")
-    auto_crop_pdf("tmp.pdf", filename)
-    os.remove("tmp.pdf")
-    texts, prices = extract_text_with_ocr(filename, weekday, price_on_lhs)
-    return extract_text(filename), texts, prices
+    # logger.debug(f"parse_pdf")
+    # download_pdf(url, filename)
+    # shutil.copy(filename, "tmp.pdf")
+    # auto_crop_pdf("tmp.pdf", filename)
+    # os.remove("tmp.pdf")
+    texts = []
+    prices = []
+    extracted_text = ""
+    with fitz.open(filename) as pdf:
+        assert pdf.page_count == 1
+        page = pdf[0]
+        pil_image = preprocessImage(page)
+        rows, row_indices = extract_weekday_rows(pil_image)
+        cols, col_indices = extract_menu_cols(rows[weekday])
+        for col in cols:
+            text, price = extract_text_area(col, price_on_lhs)
+            texts += [text]
+            prices += [price]
+        # rect = fitz.Rect(x0, y0, x1, y1)
+        # text += page.get_text(sort=True, clip=rect)
+        extracted_text += page.get_text(sort=True)
+    logger.info(f"extract_text found {extracted_text}")
+    return extracted_text, texts, prices
 
 
 def download_pdf(url, filename):
@@ -95,30 +111,14 @@ def auto_crop_pdf(input_pdf, output_pdf):
     doc.close()
 
 
-def extract_text_with_ocr(filename, weekday, price_on_lhs):
-    logger.debug(f"extract_text_with_ocr")
-    texts = []
-    prices = []
-    with fitz.open(filename) as pdf:
-        assert pdf.page_count == 1
-        page = pdf[0]
-        pil_image = preprocessImage(page)
-        row = extract_weekday_row(pil_image)
-        for cell in extract_menu_cols(row[weekday]):
-            text, price = extract_text_area(row, cell, price_on_lhs)
-            texts += [text]
-            prices += [price]
-    return texts, prices
-
-
-def extract_weekday_row(pil_image):
-    logger.debug(f"extract_weekday_row {pil_image}")
+def extract_weekday_rows(pil_image):
+    logger.debug(f"extract_weekday_rows {pil_image}")
     row_boundaries = detect_boundaries(np.asarray(pil_image), 1)
     biggest_rows = get_biggest_boundaries(row_boundaries)
     return [
         pil_image.crop((0, upper, pil_image.width, lower))
         for (upper, lower) in sorted(biggest_rows)
-    ]
+    ], biggest_rows
 
 
 def extract_menu_cols(row):
@@ -127,7 +127,7 @@ def extract_menu_cols(row):
     biggest_cols = get_biggest_boundaries(col_boundaries)
     return [
         row.crop((left, 0, right, row.height)) for (left, right) in sorted(biggest_cols)
-    ]
+    ], biggest_cols
 
 
 def preprocessImage(page, dpi=300):
@@ -168,8 +168,8 @@ def mode(a):
     return u[c.argmax()]
 
 
-def extract_text_area(row, cell, price_on_lhs):
-    logger.debug(f"extract_text_area {row}, {cell}, {price_on_lhs}")
+def extract_text_area(cell, price_on_lhs):
+    logger.debug(f"extract_text_area {cell}, {price_on_lhs}")
     # Perform OCR on the grayscale image using Tesseract
     text = pytesseract.image_to_string(cell, lang="deu")
 
@@ -192,17 +192,6 @@ def extract_text_area(row, cell, price_on_lhs):
 
     logger.info(f"extract_text_area found {text}, {price}")
     return text, price
-
-
-def extract_text(filename):
-    logger.debug(f"extract_text")
-    text = ""
-    with fitz.open(filename) as pdf:
-        for page_num in range(pdf.page_count):
-            page = pdf[page_num]
-            text += page.get_text(sort=True)
-    logger.info(f"extract_text found {text}")
-    return text
 
 
 def compute_menu(text, ocr, prices, title, url):
