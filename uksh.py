@@ -36,10 +36,18 @@ def getMFCMenu(today):
     global logger
     logger = getLogger(__name__ + "_mfc")
     logger.debug("getMFCMenu called")
+    title = "MFC Cafeteria"
     try:
         url = ""  # find_pdf(MFC_URL, today)
-        text, ocr, prices = parse_pdf(url, today.weekday(), price_on_lhs=False)
-        return compute_menu(text, ocr, prices, "MFC Cafeteria", url)
+        menu = Menu(title, url)
+        filename = "menu.pdf"
+        # get_pdf(url, filename)
+        text, ocr, prices = parse_pdf(
+            today.weekday(), price_on_lhs=False, filename=filename
+        )
+        filtered_text = filter_text(text)
+        filtered_ocr = [filter_text(t) for t in ocr]
+        return combine_ocr_and_text(filtered_ocr, filtered_text, prices, menu)
     except Exception as e:
         logger.debug(f"Exception in getMFCMenu: {e}")
         return Menu("MFC Cafeteria", url)
@@ -49,21 +57,25 @@ def getUKSHMenu(today):
     global logger
     logger = getLogger(__name__ + "_uksh")
     logger.debug("getUKSHMenu called")
+    title = "UKSH Bistro"
     try:
         url = find_pdf(UKSH_URL, today)
-        text, ocr, prices = parse_pdf(url, today.weekday(), price_on_lhs=True)
-        return compute_menu(text, ocr, prices, "UKSH Bistro", url)
+        menu = Menu(title, url)
+        filename = "menu.pdf"
+        # get_pdf(url, filename)
+        text, ocr, prices = parse_pdf(
+            today.weekday(), price_on_lhs=True, filename=filename
+        )
+        filtered_text = filter_text(text)
+        filtered_ocr = [filter_text(t) for t in ocr]
+        return combine_ocr_and_text(filtered_ocr, filtered_text, prices, menu)
     except Exception as e:
         logger.debug(f"Exception in getUKSHMenu: {e}")
         return Menu("UKSH Bistro", url)
 
 
-def parse_pdf(url, weekday, price_on_lhs, filename="menu.pdf"):
-    # logger.debug(f"parse_pdf")
-    # download_pdf(url, filename)
-    # shutil.copy(filename, "tmp.pdf")
-    # auto_crop_pdf("tmp.pdf", filename)
-    # os.remove("tmp.pdf")
+def parse_pdf(weekday, price_on_lhs, filename="menu.pdf"):
+    logger.debug(f"parse_pdf")
     ocr_texts = []
     ocr_prices = []
     text = ""
@@ -84,6 +96,14 @@ def parse_pdf(url, weekday, price_on_lhs, filename="menu.pdf"):
             text += page.get_text(sort=True, clip=rect)
     logger.info(f"fitz found {text}")
     return text, ocr_texts, ocr_prices
+
+
+def get_pdf(url, filename):
+    logger.debug(f"get_pdf")
+    download_pdf(url, filename)
+    shutil.copy(filename, "tmp.pdf")
+    auto_crop_pdf("tmp.pdf", filename)
+    os.remove("tmp.pdf")
 
 
 def download_pdf(url, filename):
@@ -196,14 +216,6 @@ def extract_text_ocr(cell, price_on_lhs):
     return text, price
 
 
-def compute_menu(text, ocr, prices, title, url):
-    logger.debug(f"compute_menu")
-    filtered_text = filter_text(text)
-    filtered_ocr = [filter_text(t) for t in ocr]
-    menu = Menu(title, url)
-    return find_matches(filtered_ocr, filtered_text, prices, menu)
-
-
 def filter_text(text):
     logger.debug(f"filter_text")
     lines = text.splitlines()
@@ -216,14 +228,14 @@ def filter_text(text):
     return filtered_text
 
 
-def find_matches(ocrs, texts, prices, menu, veggie_index=1):
+def combine_ocr_and_text(ocrs, texts, prices, menu, veggie_index=1):
     logger.debug(f"find_matches")
-    for i, (meal, price) in enumerate(zip(ocrs, prices)):
-        if not meal or not price:
+    for i, (ocr, price) in enumerate(zip(ocrs, prices)):
+        if not ocr or not price:
             continue
         lines = []
         scores = []
-        for line in meal:
+        for line in ocr:
             best_match = process.extractOne(
                 line, texts, scorer=fuzz.ratio, processor=lambda s: s.lower()
             )
