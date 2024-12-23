@@ -71,6 +71,7 @@ def parse_pdf(weekday, menu, price_on_lhs, filename="menu.pdf"):
     texts = []
     dpi = 300
     f = 72 / dpi
+    veggie_index = 1
     with fitz.open(filename) as pdf:
         assert pdf.page_count == 1
         page = pdf[0]
@@ -78,35 +79,30 @@ def parse_pdf(weekday, menu, price_on_lhs, filename="menu.pdf"):
         rows, ys = extract_weekday_rows(pil_image)
         y = ys[weekday]
         cols, xs = extract_menu_cols(rows[weekday])
-        for col, x in zip(cols, xs):
+        for i, (col, x) in enumerate(zip(cols, xs)):
             # ocr text from pdf
             ocr_text, ocr_price = extract_text_ocr(col, price_on_lhs)
-            ocr_texts += [filter_text(ocr_text)]
-            ocr_prices += [ocr_price]
+            ocr_text = filter_text(ocr_text)
             # extract text from pdf
             rect = fitz.Rect(x[0] * f, y[0] * f, x[1] * f, y[1] * f)
             text = page.get_text(sort=True, clip=rect)
-            texts += [filter_text(text)]
-            # TODO: combine
-    logger.info(f"fitz found {texts}")
-
-    veggie_index = 1
-    for i, (ocr, price, text) in enumerate(zip(ocr_texts, ocr_prices, texts)):
-        if not ocr or not price or not text:
-            continue
-        lines = []
-        scores = []
-        for line in ocr:
-            best_match = process.extractOne(
-                line, text, scorer=fuzz.ratio, processor=lambda s: s.lower()
-            )
-            lines.append(best_match[0])
-            scores.append(best_match[1])
-        while len(lines) > 3:  # maximal three lines per menu
-            idx = np.argmin(scores)
-            del lines[idx]
-            del scores[idx]
-        menu.add_item(" ".join(lines), price, vegetarian=i == veggie_index)
+            text = filter_text(text)
+            # combine
+            if not ocr_text or not ocr_price or not text:
+                continue
+            lines = []
+            scores = []
+            for line in ocr_text:
+                best_match = process.extractOne(
+                    line, text, scorer=fuzz.ratio, processor=lambda s: s.lower()
+                )
+                lines.append(best_match[0])
+                scores.append(best_match[1])
+            while len(lines) > 3:  # maximal three lines per menu
+                idx = np.argmin(scores)
+                del lines[idx]
+                del scores[idx]
+            menu.add_item(" ".join(lines), ocr_price, vegetarian=i == veggie_index)
     return menu
 
 
