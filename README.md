@@ -3,10 +3,8 @@ This MS Teams bot parses the menu of the UKSH Bistro, Cafeteria and the Uni Lüb
 
 ## Requirements
 
-Install tesseract and everything in the requirements.txt.
+Install everything in the requirements.txt.
 ```
-sudo apt install tesseract-ocr
-sudo wget -O /usr/share/tesseract-ocr/5/tessdata/deu.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/deu.traineddata
 pip install -r requirements.txt
 ```
 I recommend using a virtual environment with `python3-venv`.

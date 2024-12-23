@@ -6,9 +6,7 @@ import shutil
 import fitz  # PyMuPDF
 import requests
 import re
-import pytesseract
 from PIL import Image
-from rapidfuzz import process, fuzz
 import numpy as np
 
 from menu import Menu
