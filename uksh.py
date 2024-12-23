@@ -42,10 +42,7 @@ def getMFCMenu(today):
         menu = Menu(title, url)
         filename = "menu.pdf"
         # get_pdf(url, filename)
-        texts, ocr, prices = parse_pdf(
-            today.weekday(), price_on_lhs=False, filename=filename
-        )
-        return combine_ocr_and_text(ocr, texts, prices, menu)
+        return parse_pdf(today.weekday(), menu, price_on_lhs=False, filename=filename)
     except Exception as e:
         logger.debug(f"Exception in getMFCMenu: {e}")
         return Menu("MFC Cafeteria", url)
@@ -61,16 +58,13 @@ def getUKSHMenu(today):
         menu = Menu(title, url)
         filename = "menu.pdf"
         # get_pdf(url, filename)
-        texts, ocr, prices = parse_pdf(
-            today.weekday(), price_on_lhs=True, filename=filename
-        )
-        return combine_ocr_and_text(ocr, texts, prices, menu)
+        return parse_pdf(today.weekday(), menu, price_on_lhs=True, filename=filename)
     except Exception as e:
         logger.debug(f"Exception in getUKSHMenu: {e}")
         return Menu("UKSH Bistro", url)
 
 
-def parse_pdf(weekday, price_on_lhs, filename="menu.pdf"):
+def parse_pdf(weekday, menu, price_on_lhs, filename="menu.pdf"):
     logger.debug(f"parse_pdf")
     ocr_texts = []
     ocr_prices = []
@@ -95,7 +89,7 @@ def parse_pdf(weekday, price_on_lhs, filename="menu.pdf"):
             texts += [filter_text(text)]
             # TODO: combine
     logger.info(f"fitz found {texts}")
-    return texts, ocr_texts, ocr_prices
+    return combine_ocr_and_text(ocr_texts, texts, ocr_prices, menu)
 
 
 def get_pdf(url, filename):
