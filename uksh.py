@@ -42,7 +42,7 @@ def getMFCMenu(today):
         menu = Menu(title, url)
         filename = "menu.pdf"
         # get_pdf(url, filename)
-        return parse_pdf(today.weekday(), menu, price_on_lhs=False, filename=filename)
+        return parse_pdf(today.weekday(), menu, filename=filename)
     except Exception as e:
         logger.debug(f"Exception in getMFCMenu: {e}")
         return Menu("MFC Cafeteria", url)
@@ -58,15 +58,13 @@ def getUKSHMenu(today):
         menu = Menu(title, url)
         filename = "menu.pdf"
         # get_pdf(url, filename)
-        return parse_pdf(today.weekday(), menu, price_on_lhs=True, filename=filename)
+        return parse_pdf(today.weekday(), menu, filename=filename)
     except Exception as e:
         logger.debug(f"Exception in getUKSHMenu: {e}")
         return Menu("UKSH Bistro", url)
 
 
-def parse_pdf(
-    weekday, menu, price_on_lhs, filename="menu.pdf", dpi=300, veggie_index=1
-):
+def parse_pdf(weekday, menu, filename="menu.pdf", dpi=300, veggie_index=1):
     logger.debug(f"parse_pdf")
     with fitz.open(filename) as pdf:
         assert pdf.page_count == 1
@@ -76,7 +74,7 @@ def parse_pdf(
         y = ys[weekday]
         cols, xs = extract_menu_cols(rows[weekday])
         for i, (col, x) in enumerate(zip(cols, xs)):
-            ocr_text, ocr_price = extract_text_ocr(col, price_on_lhs)
+            ocr_text = extract_text_ocr(col)
             text, price = extract_text(page, x, y, dpi=dpi)
             if not ocr_text or not text or not price:
                 continue
@@ -177,30 +175,12 @@ def mode(a):
     return u[c.argmax()]
 
 
-def extract_text_ocr(cell, price_on_lhs):
-    logger.debug(f"extract_text_ocr {cell}, {price_on_lhs}")
+def extract_text_ocr(cell):
+    logger.debug(f"extract_text_ocr {cell}")
     # Perform OCR on the grayscale image using Tesseract
     text = pytesseract.image_to_string(cell, lang="deu")
-
-    # focus only on price (lower part of cell)
-    if price_on_lhs:
-        price_image = cell.crop(
-            (0, cell.height - PRICE_HEIGHT, cell.width // 2, cell.height)
-        )
-    else:
-        price_image = cell.crop(
-            (cell.width // 2, cell.height - PRICE_HEIGHT, cell.width, cell.height)
-        )
-    price = pytesseract.image_to_string(
-        price_image,
-        lang="deu",
-        config="--oem 0 -c tessedit_char_whitelist=0123456789,/€",
-    )
-    # Remove all spaces and add space before and after "/"
-    price = price.replace(" ", "").replace("/", " / ")
-
-    logger.info(f"extract_text_ocr found {text}, {price}")
-    return filter_text(text), price
+    logger.info(f"extract_text_ocr found {text}")
+    return filter_text(text)
 
 
 def filter_text(text):
