@@ -13,7 +13,6 @@ from menu import Menu
 
 MFC_URL = "https://www.uksh.de/ssn/Unser+Speisenangebot/Campus+L%C3%BCbeck/MFC+Cafeteria+im+UKSH_Verwaltungszentrum.html"
 UKSH_URL = "https://www.uksh.de/ssn/Unser+Speisenangebot/Campus+L%C3%BCbeck/UKSH_Bistro+L%C3%BCbeck-p-346.html"
-PRICE_HEIGHT = 60
 
 
 def find_pdf(url, today):
@@ -26,6 +25,8 @@ def find_pdf(url, today):
         for pdf_link in re.findall('href="[^"]+.pdf"', res.text)
         if f"KW+{kw:0>2}" in pdf_link
     ]
+    if pdf_link == []:
+        raise FileNotFoundError(f"Could not find this week's pdf at {url}")
     logger.info(f"pdf_link for {url}: {pdf_link[0]}")
     return pdf_link[0]
 
@@ -35,15 +36,16 @@ def getMFCMenu(today):
     logger = getLogger(__name__ + "_mfc")
     logger.debug("getMFCMenu called")
     title = "MFC Cafeteria"
+    url = MFC_URL
     try:
-        url = ""  # find_pdf(MFC_URL, today)
+        url = find_pdf(url, today)
         menu = Menu(title, url)
         filename = "menu.pdf"
-        # get_pdf(url, filename)
+        prepare_pdf(url, filename)
         return parse_pdf(today.weekday(), menu, filename=filename)
     except Exception as e:
         logger.debug(f"Exception in getMFCMenu: {e}")
-        return Menu("MFC Cafeteria", url)
+        return Menu(title, url)
 
 
 def getUKSHMenu(today):
@@ -51,15 +53,16 @@ def getUKSHMenu(today):
     logger = getLogger(__name__ + "_uksh")
     logger.debug("getUKSHMenu called")
     title = "UKSH Bistro"
+    url = UKSH_URL
     try:
-        url = find_pdf(UKSH_URL, today)
+        url = find_pdf(url, today)
         menu = Menu(title, url)
         filename = "menu.pdf"
-        # prepare_pdf(url, filename)
+        prepare_pdf(url, filename)
         return parse_pdf(today.weekday(), menu, filename=filename)
     except Exception as e:
         logger.debug(f"Exception in getUKSHMenu: {e}")
-        return Menu("UKSH Bistro", url)
+        return Menu(title, url)
 
 
 def parse_pdf(weekday, menu, filename="menu.pdf", dpi=300, veggie_index=1):
