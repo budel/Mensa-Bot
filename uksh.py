@@ -64,9 +64,9 @@ def parse_pdf(url, weekday, price_on_lhs, filename="menu.pdf"):
     # shutil.copy(filename, "tmp.pdf")
     # auto_crop_pdf("tmp.pdf", filename)
     # os.remove("tmp.pdf")
-    texts = []
-    prices = []
-    extracted_text = ""
+    ocr_texts = []
+    ocr_prices = []
+    text = ""
     dpi = 300
     f = 72 / dpi
     with fitz.open(filename) as pdf:
@@ -77,13 +77,13 @@ def parse_pdf(url, weekday, price_on_lhs, filename="menu.pdf"):
         y = ys[weekday]
         cols, xs = extract_menu_cols(rows[weekday])
         for col, x in zip(cols, xs):
-            text, price = extract_text_area(col, price_on_lhs)
-            texts += [text]
-            prices += [price]
+            ocr_text, ocr_price = extract_text_ocr(col, price_on_lhs)
+            ocr_texts += [ocr_text]
+            ocr_prices += [ocr_price]
             rect = fitz.Rect(x[0] * f, y[0] * f, x[1] * f, y[1] * f)
-            extracted_text += page.get_text(sort=True, clip=rect)
-    logger.info(f"extract_text found {extracted_text}")
-    return extracted_text, texts, prices
+            text += page.get_text(sort=True, clip=rect)
+    logger.info(f"fitz found {text}")
+    return text, ocr_texts, ocr_prices
 
 
 def download_pdf(url, filename):
@@ -170,8 +170,8 @@ def mode(a):
     return u[c.argmax()]
 
 
-def extract_text_area(cell, price_on_lhs):
-    logger.debug(f"extract_text_area {cell}, {price_on_lhs}")
+def extract_text_ocr(cell, price_on_lhs):
+    logger.debug(f"extract_text_ocr {cell}, {price_on_lhs}")
     # Perform OCR on the grayscale image using Tesseract
     text = pytesseract.image_to_string(cell, lang="deu")
 
@@ -192,7 +192,7 @@ def extract_text_area(cell, price_on_lhs):
     # Remove all spaces and add space before and after "/"
     price = price.replace(" ", "").replace("/", " / ")
 
-    logger.info(f"extract_text_area found {text}, {price}")
+    logger.info(f"extract_text_ocr found {text}, {price}")
     return text, price
 
 
