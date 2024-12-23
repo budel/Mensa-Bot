@@ -35,25 +35,17 @@ def getMFCMenu(today):
     global logger
     logger = getLogger(__name__ + "_mfc")
     logger.debug("getMFCMenu called")
-    title = "MFC Cafeteria"
-    url = MFC_URL
-    try:
-        url = find_pdf(url, today)
-        menu = Menu(title, url)
-        filename = "menu.pdf"
-        prepare_pdf(url, filename)
-        return parse_pdf(today.weekday(), menu, filename=filename)
-    except Exception as e:
-        logger.debug(f"Exception in getMFCMenu: {e}")
-        return Menu(title, url)
+    return createMenu("MFC Cafeteria", MFC_URL, today)
 
 
 def getUKSHMenu(today):
     global logger
     logger = getLogger(__name__ + "_uksh")
     logger.debug("getUKSHMenu called")
-    title = "UKSH Bistro"
-    url = UKSH_URL
+    return createMenu("UKSH Bistro", UKSH_URL, today)
+
+
+def createMenu(title, url, today):
     try:
         url = find_pdf(url, today)
         menu = Menu(title, url)
@@ -61,7 +53,7 @@ def getUKSHMenu(today):
         prepare_pdf(url, filename)
         return parse_pdf(today.weekday(), menu, filename=filename)
     except Exception as e:
-        logger.debug(f"Exception in getUKSHMenu: {e}")
+        logger.debug(f"Error: {e}")
         return Menu(title, url)
 
 
