@@ -57,7 +57,7 @@ def getUKSHMenu(today):
         url = find_pdf(UKSH_URL, today)
         menu = Menu(title, url)
         filename = "menu.pdf"
-        # get_pdf(url, filename)
+        # prepare_pdf(url, filename)
         return parse_pdf(today.weekday(), menu, filename=filename)
     except Exception as e:
         logger.debug(f"Exception in getUKSHMenu: {e}")
@@ -74,16 +74,14 @@ def parse_pdf(weekday, menu, filename="menu.pdf", dpi=300, veggie_index=1):
         y = ys[weekday]
         cols, xs = extract_menu_cols(rows[weekday])
         for i, (col, x) in enumerate(zip(cols, xs)):
-            ocr_text = extract_text_ocr(col)
             text, price = extract_text(page, x, y, dpi=dpi)
-            if not ocr_text or not text or not price:
+            if not text or not price:
                 continue
-            lines = combine_ocr_and_text(ocr_text, text)
-            menu.add_item(" ".join(lines), price, vegetarian=i == veggie_index)
+            menu.add_item(" ".join(text), price, vegetarian=i == veggie_index)
     return menu
 
 
-def get_pdf(url, filename):
+def prepare_pdf(url, filename):
     logger.debug(f"get_pdf")
     download_pdf(url, filename)
     shutil.copy(filename, "tmp.pdf")
@@ -175,26 +173,6 @@ def mode(a):
     return u[c.argmax()]
 
 
-def extract_text_ocr(cell):
-    logger.debug(f"extract_text_ocr {cell}")
-    # Perform OCR on the grayscale image using Tesseract
-    text = pytesseract.image_to_string(cell, lang="deu")
-    logger.info(f"extract_text_ocr found {text}")
-    return filter_text(text)
-
-
-def filter_text(text):
-    logger.debug(f"filter_text")
-    lines = text.splitlines()
-    exclude = r"\d+|Wochentag|Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|Speiseplan MFC Cafeteria|Speiseplan Bistro|/|Änderungen vorbehalten|MFC Cafeteria|Campus Lübeck|Zusatzgericht|Vegetarisch"
-    filtered_text = [
-        line
-        for line in lines
-        if line != "" and line != "-" and not re.search(exclude, line)
-    ]
-    return filtered_text
-
-
 def extract_text(page, x, y, dpi=300):
     f = 72 / dpi
     rect = fitz.Rect(x[0] * f, y[0] * f, x[1] * f, y[1] * f)
@@ -211,17 +189,13 @@ def get_price(text):
     return "".join(filtered_text)
 
 
-def combine_ocr_and_text(ocr_text, text):
-    lines = []
-    scores = []
-    for line in ocr_text:
-        best_match = process.extractOne(
-            line, text, scorer=fuzz.ratio, processor=lambda s: s.lower()
-        )
-        lines.append(best_match[0])
-        scores.append(best_match[1])
-    while len(lines) > 3:  # maximal three lines per menu
-        idx = np.argmin(scores)
-        del lines[idx]
-        del scores[idx]
-    return lines
+def filter_text(text):
+    logger.debug(f"filter_text")
+    lines = text.splitlines()
+    exclude = r"\d+|Wochentag|Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|Speiseplan MFC Cafeteria|Speiseplan Bistro|/|Änderungen vorbehalten|MFC Cafeteria|Campus Lübeck|Zusatzgericht|Vegetarisch"
+    filtered_text = [
+        line
+        for line in lines
+        if line != "" and line != "-" and not re.search(exclude, line)
+    ]
+    return filtered_text
