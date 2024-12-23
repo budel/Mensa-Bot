@@ -42,12 +42,10 @@ def getMFCMenu(today):
         menu = Menu(title, url)
         filename = "menu.pdf"
         # get_pdf(url, filename)
-        text, ocr, prices = parse_pdf(
+        texts, ocr, prices = parse_pdf(
             today.weekday(), price_on_lhs=False, filename=filename
         )
-        filtered_text = filter_text(text)
-        filtered_ocr = [filter_text(t) for t in ocr]
-        return combine_ocr_and_text(filtered_ocr, filtered_text, prices, menu)
+        return combine_ocr_and_text(ocr, texts, prices, menu)
     except Exception as e:
         logger.debug(f"Exception in getMFCMenu: {e}")
         return Menu("MFC Cafeteria", url)
@@ -63,12 +61,10 @@ def getUKSHMenu(today):
         menu = Menu(title, url)
         filename = "menu.pdf"
         # get_pdf(url, filename)
-        text, ocr, prices = parse_pdf(
+        texts, ocr, prices = parse_pdf(
             today.weekday(), price_on_lhs=True, filename=filename
         )
-        filtered_text = filter_text(text)
-        filtered_ocr = [filter_text(t) for t in ocr]
-        return combine_ocr_and_text(filtered_ocr, filtered_text, prices, menu)
+        return combine_ocr_and_text(ocr, texts, prices, menu)
     except Exception as e:
         logger.debug(f"Exception in getUKSHMenu: {e}")
         return Menu("UKSH Bistro", url)
@@ -78,7 +74,7 @@ def parse_pdf(weekday, price_on_lhs, filename="menu.pdf"):
     logger.debug(f"parse_pdf")
     ocr_texts = []
     ocr_prices = []
-    text = ""
+    texts = []
     dpi = 300
     f = 72 / dpi
     with fitz.open(filename) as pdf:
@@ -89,13 +85,17 @@ def parse_pdf(weekday, price_on_lhs, filename="menu.pdf"):
         y = ys[weekday]
         cols, xs = extract_menu_cols(rows[weekday])
         for col, x in zip(cols, xs):
+            # ocr text from pdf
             ocr_text, ocr_price = extract_text_ocr(col, price_on_lhs)
-            ocr_texts += [ocr_text]
+            ocr_texts += [filter_text(ocr_text)]
             ocr_prices += [ocr_price]
+            # extract text from pdf
             rect = fitz.Rect(x[0] * f, y[0] * f, x[1] * f, y[1] * f)
-            text += page.get_text(sort=True, clip=rect)
-    logger.info(f"fitz found {text}")
-    return text, ocr_texts, ocr_prices
+            text = page.get_text(sort=True, clip=rect)
+            texts += [filter_text(text)]
+            # TODO: combine
+    logger.info(f"fitz found {texts}")
+    return texts, ocr_texts, ocr_prices
 
 
 def get_pdf(url, filename):
@@ -230,14 +230,14 @@ def filter_text(text):
 
 def combine_ocr_and_text(ocrs, texts, prices, menu, veggie_index=1):
     logger.debug(f"find_matches")
-    for i, (ocr, price) in enumerate(zip(ocrs, prices)):
-        if not ocr or not price:
+    for i, (ocr, price, text) in enumerate(zip(ocrs, prices, texts)):
+        if not ocr or not price or not text:
             continue
         lines = []
         scores = []
         for line in ocr:
             best_match = process.extractOne(
-                line, texts, scorer=fuzz.ratio, processor=lambda s: s.lower()
+                line, text, scorer=fuzz.ratio, processor=lambda s: s.lower()
             )
             lines.append(best_match[0])
             scores.append(best_match[1])
