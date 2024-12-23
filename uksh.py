@@ -77,11 +77,11 @@ def parse_pdf(
         cols, xs = extract_menu_cols(rows[weekday])
         for i, (col, x) in enumerate(zip(cols, xs)):
             ocr_text, ocr_price = extract_text_ocr(col, price_on_lhs)
-            text = extract_text(page, x, y, dpi=dpi)
-            if not ocr_text or not ocr_price or not text:
+            text, price = extract_text(page, x, y, dpi=dpi)
+            if not ocr_text or not text or not price:
                 continue
             lines = combine_ocr_and_text(ocr_text, text)
-            menu.add_item(" ".join(lines), ocr_price, vegetarian=i == veggie_index)
+            menu.add_item(" ".join(lines), price, vegetarian=i == veggie_index)
     return menu
 
 
@@ -219,8 +219,16 @@ def extract_text(page, x, y, dpi=300):
     f = 72 / dpi
     rect = fitz.Rect(x[0] * f, y[0] * f, x[1] * f, y[1] * f)
     text = page.get_text(sort=True, clip=rect)
-    text = filter_text(text)
-    return text
+    price = get_price(text)
+    return filter_text(text), price
+
+
+def get_price(text):
+    logger.debug(f"get_price")
+    lines = text.splitlines()
+    include = r"€"
+    filtered_text = [line for line in lines if re.search(include, line)]
+    return "".join(filtered_text)
 
 
 def combine_ocr_and_text(ocr_text, text):
