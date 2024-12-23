@@ -64,14 +64,10 @@ def getUKSHMenu(today):
         return Menu("UKSH Bistro", url)
 
 
-def parse_pdf(weekday, menu, price_on_lhs, filename="menu.pdf"):
+def parse_pdf(
+    weekday, menu, price_on_lhs, filename="menu.pdf", dpi=300, veggie_index=1
+):
     logger.debug(f"parse_pdf")
-    ocr_texts = []
-    ocr_prices = []
-    texts = []
-    dpi = 300
-    f = 72 / dpi
-    veggie_index = 1
     with fitz.open(filename) as pdf:
         assert pdf.page_count == 1
         page = pdf[0]
@@ -80,28 +76,11 @@ def parse_pdf(weekday, menu, price_on_lhs, filename="menu.pdf"):
         y = ys[weekday]
         cols, xs = extract_menu_cols(rows[weekday])
         for i, (col, x) in enumerate(zip(cols, xs)):
-            # ocr text from pdf
             ocr_text, ocr_price = extract_text_ocr(col, price_on_lhs)
-            ocr_text = filter_text(ocr_text)
-            # extract text from pdf
-            rect = fitz.Rect(x[0] * f, y[0] * f, x[1] * f, y[1] * f)
-            text = page.get_text(sort=True, clip=rect)
-            text = filter_text(text)
-            # combine
+            text = extract_text(page, x, y, dpi=dpi)
             if not ocr_text or not ocr_price or not text:
                 continue
-            lines = []
-            scores = []
-            for line in ocr_text:
-                best_match = process.extractOne(
-                    line, text, scorer=fuzz.ratio, processor=lambda s: s.lower()
-                )
-                lines.append(best_match[0])
-                scores.append(best_match[1])
-            while len(lines) > 3:  # maximal three lines per menu
-                idx = np.argmin(scores)
-                del lines[idx]
-                del scores[idx]
+            lines = combine_ocr_and_text(ocr_text, text)
             menu.add_item(" ".join(lines), ocr_price, vegetarian=i == veggie_index)
     return menu
 
@@ -221,7 +200,7 @@ def extract_text_ocr(cell, price_on_lhs):
     price = price.replace(" ", "").replace("/", " / ")
 
     logger.info(f"extract_text_ocr found {text}, {price}")
-    return text, price
+    return filter_text(text), price
 
 
 def filter_text(text):
@@ -234,3 +213,27 @@ def filter_text(text):
         if line != "" and line != "-" and not re.search(exclude, line)
     ]
     return filtered_text
+
+
+def extract_text(page, x, y, dpi=300):
+    f = 72 / dpi
+    rect = fitz.Rect(x[0] * f, y[0] * f, x[1] * f, y[1] * f)
+    text = page.get_text(sort=True, clip=rect)
+    text = filter_text(text)
+    return text
+
+
+def combine_ocr_and_text(ocr_text, text):
+    lines = []
+    scores = []
+    for line in ocr_text:
+        best_match = process.extractOne(
+            line, text, scorer=fuzz.ratio, processor=lambda s: s.lower()
+        )
+        lines.append(best_match[0])
+        scores.append(best_match[1])
+    while len(lines) > 3:  # maximal three lines per menu
+        idx = np.argmin(scores)
+        del lines[idx]
+        del scores[idx]
+    return lines
