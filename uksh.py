@@ -89,7 +89,25 @@ def parse_pdf(weekday, menu, price_on_lhs, filename="menu.pdf"):
             texts += [filter_text(text)]
             # TODO: combine
     logger.info(f"fitz found {texts}")
-    return combine_ocr_and_text(ocr_texts, texts, ocr_prices, menu)
+
+    veggie_index = 1
+    for i, (ocr, price, text) in enumerate(zip(ocr_texts, ocr_prices, texts)):
+        if not ocr or not price or not text:
+            continue
+        lines = []
+        scores = []
+        for line in ocr:
+            best_match = process.extractOne(
+                line, text, scorer=fuzz.ratio, processor=lambda s: s.lower()
+            )
+            lines.append(best_match[0])
+            scores.append(best_match[1])
+        while len(lines) > 3:  # maximal three lines per menu
+            idx = np.argmin(scores)
+            del lines[idx]
+            del scores[idx]
+        menu.add_item(" ".join(lines), price, vegetarian=i == veggie_index)
+    return menu
 
 
 def get_pdf(url, filename):
@@ -220,24 +238,3 @@ def filter_text(text):
         if line != "" and line != "-" and not re.search(exclude, line)
     ]
     return filtered_text
-
-
-def combine_ocr_and_text(ocrs, texts, prices, menu, veggie_index=1):
-    logger.debug(f"find_matches")
-    for i, (ocr, price, text) in enumerate(zip(ocrs, prices, texts)):
-        if not ocr or not price or not text:
-            continue
-        lines = []
-        scores = []
-        for line in ocr:
-            best_match = process.extractOne(
-                line, text, scorer=fuzz.ratio, processor=lambda s: s.lower()
-            )
-            lines.append(best_match[0])
-            scores.append(best_match[1])
-        while len(lines) > 3:  # maximal three lines per menu
-            idx = np.argmin(scores)
-            del lines[idx]
-            del scores[idx]
-        menu.add_item(" ".join(lines), price, vegetarian=i == veggie_index)
-    return menu
