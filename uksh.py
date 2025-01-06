@@ -179,7 +179,8 @@ def get_price(text):
     lines = text.splitlines()
     include = r"€"
     filtered_text = [line for line in lines if re.search(include, line)]
-    return "".join(filtered_text)
+    possible_price = "".join(filtered_text)
+    return re.sub(r"kcal\s*\d+\s*\/\s*kJ\s*\d+", "", possible_price)
 
 
 def filter_text(text):
