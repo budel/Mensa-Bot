@@ -2,12 +2,14 @@ from logging import getLogger
 
 logger = getLogger(__name__)
 import os
-import shutil
-import fitz  # PyMuPDF
-import requests
 import re
-from PIL import Image
+import shutil
+
+import fitz  # PyMuPDF
 import numpy as np
+import pytesseract
+import requests
+from PIL import Image
 
 from menu import Menu
 
@@ -19,23 +21,23 @@ def getMFCMenu(today):
     global logger
     logger = getLogger(__name__ + "_mfc")
     logger.debug("getMFCMenu called")
-    return createMenu("MFC Cafeteria", MFC_URL, today)
+    return createMenu("MFC Cafeteria", MFC_URL, today, price_on_lhs=False)
 
 
 def getUKSHMenu(today):
     global logger
     logger = getLogger(__name__ + "_uksh")
     logger.debug("getUKSHMenu called")
-    return createMenu("UKSH Bistro", UKSH_URL, today)
+    return createMenu("UKSH Bistro", UKSH_URL, today, price_on_lhs=True)
 
 
-def createMenu(title, url, today):
+def createMenu(title, url, today, price_on_lhs):
     try:
         url = find_pdf(url, today)
         menu = Menu(title, url)
         filename = "menu.pdf"
         prepare_pdf(url, filename)
-        return parse_pdf(today.weekday(), menu, filename=filename)
+        return parse_pdf(today.weekday(), menu, price_on_lhs, filename=filename)
     except Exception as e:
         logger.debug(f"Error: {e}")
         return Menu(title, url)
@@ -92,7 +94,9 @@ def auto_crop_pdf(input_pdf, output_pdf):
     doc.close()
 
 
-def parse_pdf(weekday, menu, filename="menu.pdf", dpi=300, veggie_index=1):
+def parse_pdf(
+    weekday, menu, price_on_lhs, filename="menu.pdf", dpi=300, veggie_index=1
+):
     logger.debug(f"parse_pdf")
     with fitz.open(filename) as pdf:
         assert pdf.page_count == 1
@@ -102,7 +106,7 @@ def parse_pdf(weekday, menu, filename="menu.pdf", dpi=300, veggie_index=1):
         y = ys[weekday]
         cols, xs = extract_menu_cols(rows[weekday])
         for i, (col, x) in enumerate(zip(cols, xs)):
-            text, price = extract_text(page, x, y, dpi=dpi)
+            text, price = extract_text(pil_image, page, x, y, price_on_lhs, dpi=dpi)
             if not text:
                 continue
             menu.add_item(" ".join(text), price, vegetarian=i == veggie_index)
@@ -166,21 +170,29 @@ def mode(a):
     return u[c.argmax()]
 
 
-def extract_text(page, x, y, dpi=300):
+def extract_text(pil_image, page, x, y, price_on_lhs, dpi=300):
+    logger.debug(f"extract_text")
     f = 72 / dpi
     rect = fitz.Rect(x[0] * f, y[0] * f, x[1] * f, y[1] * f)
     text = page.get_text(sort=True, clip=rect)
-    price = get_price(text)
+    price = get_price(pil_image, x, y, price_on_lhs)
     return filter_text(text), price
 
 
-def get_price(text):
+def get_price(pil_image, x, y, price_on_lhs):
     logger.debug(f"get_price")
+    xNew = [x[0], (x[0] + x[1]) / 2.0] if price_on_lhs else [(x[0] + x[1]) / 2.0, x[1]]
+    cell = pil_image.crop((xNew[0], y[0] + (y[1] - y[0]) / 2.0, xNew[1], y[1]))
+    text = pytesseract.image_to_string(
+        cell,
+        lang="deu",
+        config="--oem 0 -c tessedit_char_whitelist=0123456789,/€",
+    )
+    text = text.replace(" ", "").replace("/", " / ")
     lines = text.splitlines()
     include = r"€"
     filtered_text = [line for line in lines if re.search(include, line)]
-    possible_price = "".join(filtered_text)
-    return re.sub(r"kcal\s*\d+\s*\/\s*kJ\s*\d+", "", possible_price)
+    return "".join(filtered_text)
 
 
 def filter_text(text):
