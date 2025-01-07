@@ -175,18 +175,18 @@ def extract_text(pil_image, page, x, y, price_on_lhs, dpi=300):
     f = 72 / dpi
     rect = fitz.Rect(x[0] * f, y[0] * f, x[1] * f, y[1] * f)
     text = page.get_text(sort=True, clip=rect)
-    price = get_price(pil_image, x, y, price_on_lhs)
+    price = get_price(pil_image, x, y, price_on_lhs, dpi=dpi)
     return filter_text(text), price
 
 
-def get_price(pil_image, x, y, price_on_lhs):
+def get_price(pil_image, x, y, price_on_lhs, dpi=300):
     logger.debug(f"get_price")
     xNew = [x[0], (x[0] + x[1]) / 2.0] if price_on_lhs else [(x[0] + x[1]) / 2.0, x[1]]
-    cell = pil_image.crop((xNew[0], y[0] + (y[1] - y[0]) / 2.0, xNew[1], y[1]))
+    cell = pil_image.crop((xNew[0], y[1] - 0.2 * dpi, xNew[1], y[1]))
     text = pytesseract.image_to_string(
         cell,
-        lang="deu",
-        config="--oem 0 -c tessedit_char_whitelist=0123456789,/€",
+        lang="Netto",
+        config="--tessdata-dir . --psm 7 -c tessedit_char_whitelist=0123456789,/€",
     )
     text = text.replace(" ", "").replace("/", " / ")
     lines = text.splitlines()
