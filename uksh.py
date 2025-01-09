@@ -1,3 +1,4 @@
+import pathlib
 from logging import getLogger
 
 logger = getLogger(__name__)
@@ -186,7 +187,7 @@ def get_price(pil_image, x, y, price_on_lhs, dpi=300):
     text = pytesseract.image_to_string(
         cell,
         lang="Netto",
-        config="--tessdata-dir . --psm 7 -c tessedit_char_whitelist=0123456789,/€",
+        config=f"--tessdata-dir {pathlib.Path(__file__).parent.resolve()} --psm 7 -c tessedit_char_whitelist=0123456789,/€",
     )
     text = text.replace(" ", "").replace("/", " / ")
     lines = text.splitlines()
