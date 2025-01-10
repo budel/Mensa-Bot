@@ -190,10 +190,17 @@ def get_price(pil_image, x, y, price_on_lhs, dpi=300):
         config=f"--tessdata-dir {pathlib.Path(__file__).parent.resolve()} --psm 7 -c tessedit_char_whitelist=0123456789,/€",
     )
     text = text.replace(" ", "").replace("/", " / ")
-    lines = text.splitlines()
-    include = r"€"
-    filtered_text = [line for line in lines if re.search(include, line)]
-    return "".join(filtered_text)
+    if re.match(r"€\d+,\d\d \/ €\d+,\d\d", text):
+        return text
+    else:
+        # Fallback to Legacy engine only
+        text = pytesseract.image_to_string(
+            cell,
+            lang="deu",
+            config=f"--tessdata-dir {pathlib.Path(__file__).parent.resolve()} --oem 0 --psm 7 -c tessedit_char_whitelist=0123456789,/€",
+        )
+        text = text.replace(" ", "").replace("/", " / ")
+        return text
 
 
 def filter_text(text):
