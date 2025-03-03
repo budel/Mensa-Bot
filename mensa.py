@@ -32,5 +32,5 @@ def getMensaMenu(today):
 
 
 def formatPrice(price):
-    locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
+    locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
     return locale.format_string("%.2f €", price, grouping=True)
