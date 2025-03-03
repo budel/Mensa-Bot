@@ -100,7 +100,7 @@ def parse_pdf(
 ):
     logger.debug(f"parse_pdf")
     with fitz.open(filename) as pdf:
-        assert pdf.page_count == 1
+        assert pdf.page_count > 0
         page = pdf[0]
         pil_image = preprocessImage(page, dpi=dpi)
         rows, ys = extract_weekday_rows(pil_image)
