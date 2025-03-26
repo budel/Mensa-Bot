@@ -1,19 +1,16 @@
 import torch
-from diffusers import FluxPipeline
+from diffusers import AutoPipelineForText2Image
 
-pipe = FluxPipeline.from_pretrained(
-    "black-forest-labs/FLUX.1-dev", torch_dtype=torch.bfloat16
-)
-pipe.enable_model_cpu_offload()  # save some VRAM by offloading the model to CPU. Remove this if you have enough GPU power
-
-prompt = "A cat holding a sign that says hello world"
-image = pipe(
+pipeline = AutoPipelineForText2Image.from_pretrained(
+    "stable-diffusion-v1-5/stable-diffusion-v1-5",
+    torch_dtype=torch.float16,
+    variant="fp16",
+).to("cuda")
+meal = "Zucchini-Gnocchipfanne mit  vegetarischer Hacksauce"
+prompt = "Pan of zucchini gnocchi with vegetarian mince sauce"
+image = pipeline(
     prompt,
-    height=180,
-    width=320,
     guidance_scale=3.5,
-    num_inference_steps=50,
-    max_sequence_length=512,
     generator=torch.Generator("cpu").manual_seed(0),
 ).images[0]
-image.save("flux-dev.png")
+image.save(f"meals/{meal}.png")
