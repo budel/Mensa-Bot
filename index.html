@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speisepläne</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .price {
+            text-align: right; /* Align the price to the right */
+        }
+    </style>
+</head>
+<body>
+
+<h1>Speisepläne</h1>
+<div id="table-container"></div>
+<div id="last-modified"></div>
+
+<script>
+    async function fetchData() {
+        const response = await fetch('menus.json'); // Assuming the JSON file is named menus.json
+        const data = await response.json();
+        generateTable(data);
+        displayLastModified(response);
+    }
+
+    function displayLastModified(response) {
+        const lastModified = new Date(response.headers.get('Last-Modified'));
+        const lastModifiedDiv = document.getElementById('last-modified');
+        lastModifiedDiv.innerHTML = `Letzte Aktualisierung: ${lastModified.toLocaleString('de-DE')}`;
+    }
+
+    function generateTable(data) {
+        const container = document.getElementById('table-container');
+        const table = document.createElement('table');
+
+        // Create header row
+        const headerRow = document.createElement('tr');
+        headerRow.innerHTML = '<th>Standort</th>';
+        
+        // Create a list to hold the maximum number of items for each location
+        const maxItemsCount = Math.max(...data.map(location => location.items.length));
+
+        // Create headers for each menu item
+        for (let i = 0; i < maxItemsCount; i++) {
+            headerRow.innerHTML += `<th>Menü ${i + 1}</th>`;
+        }
+        table.appendChild(headerRow);
+
+        // Create rows for each location
+        data.forEach(location => {
+            // Only create a row if there are menu items
+            if (location.items.length > 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td><a href="${location.url}" target="_blank">${location.title}</a></td>`;
+                
+                // Fill in menu items and prices
+                location.items.forEach(item => {
+                    const icon = item.vegetarian ? '🌱' : item.vegan ? '🥕' : '';
+                    row.innerHTML += `<td>${icon} ${item.name}<br><div class="price">${item.price}</div></td>`;
+                });
+
+                // Fill empty cells if there are fewer items than maxItemsCount
+                for (let i = location.items.length; i < maxItemsCount; i++) {
+                    row.innerHTML += '<td></td>';
+                }
+
+                table.appendChild(row);
+            }
+        });
+
+        container.appendChild(table);
+    }
+
+    fetchData().catch(error => console.error('Fehler beim Laden der Daten:', error));
+</script>
+
+</body>
+</html>
