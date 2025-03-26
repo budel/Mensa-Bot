@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+import pathlib
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -32,7 +33,7 @@ def main():
     )
 
     message.printme()
-    menus_file = "menus.json"
+    menus_file = pathlib.Path(__file__).parent.resolve() / "menus.json"
     menu_list = [menu.to_dict() for menu in menus]
     if len(sys.argv) > 1:
         check_for_updates(menu_list, menus_file)
