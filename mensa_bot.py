@@ -47,7 +47,7 @@ def create_message(message):
     logger.debug(f"create_message")
     today = datetime.date.today()
     menus = []
-    for menu_fn in [getMFCMenu, getUKSHMenu, getMensaMenu, getBurgerMenu]:
+    for menu_fn in [getMFCMenu, getMensaMenu, getUKSHMenu, getBurgerMenu]:
         menu = menu_fn(today)
         menus.append(menu)
         if not menu.is_empty():

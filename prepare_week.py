@@ -31,7 +31,7 @@ def parse_week():
     for i in range(5):
         day = monday + datetime.timedelta(days=i)
         menus_per_day = []
-        for menu_fn in [getMFCMenu, getUKSHMenu, getMensaMenu, getBurgerMenu]:
+        for menu_fn in [getMFCMenu, getMensaMenu, getUKSHMenu, getBurgerMenu]:
             menu = menu_fn(day)
             menus_per_day.append(menu)
         menu_list.append([menu.to_dict() for menu in menus_per_day])
