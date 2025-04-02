@@ -73,7 +73,8 @@
                 // Fill in menu items and prices
                 location.items.forEach(item => {
                     const icon = item.vegetarian ? '🌱' : item.vegan ? '🥕' : '';
-                    row.innerHTML += `<td><img class=preview src="meals/${item.name}.png" alt="${item.name}">${icon} ${item.name}<br><div class="price">${item.price}</div></td>`;
+                    const escapedName = item.name.replace(/"/g, '&quot;');
+                    row.innerHTML += `<td><img class="preview" src="meals/${escapedName}.png" alt="${escapedName}">${icon} ${escapedName}<br><div class="price">${item.price}</div></td>`;
                 });
 
                 // Fill empty cells if there are fewer items than maxItemsCount
