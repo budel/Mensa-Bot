@@ -163,6 +163,7 @@ cython_debug/
 mensabot/
 *.pdf
 payload.json
+menus.json
 .direnv
 .envrc
 meals/
