@@ -24,7 +24,7 @@ jobs:
         with:
           fail-mode: true
 
-      - name: Initialize Nix
+      - name: Initialize Nix Flake
         run: nix develop --command echo "Setup complete"
       - name: Run Mensa Bot
         run: nix develop --command python3 mensa_bot.py
