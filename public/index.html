@@ -21,10 +21,6 @@
         .price {
             text-align: right; /* Align the price to the right */
         }
-        .preview {
-            max-width: 100%;
-            height:auto;
-        }
     </style>
 </head>
 <body>
@@ -58,10 +54,10 @@
         const maxItemsCount = Math.max(...data.map(location => location.items.length));
 
         // Create headers for each menu item
-        // for (let i = 0; i < maxItemsCount; i++) {
-        //     headerRow.innerHTML += `<th>Menü ${i + 1}</th>`;
-        // }
-        // table.appendChild(headerRow);
+        for (let i = 0; i < maxItemsCount; i++) {
+            headerRow.innerHTML += `<th>Menü ${i + 1}</th>`;
+        }
+        table.appendChild(headerRow);
 
         // Create rows for each location
         data.forEach(location => {
@@ -74,7 +70,7 @@
                 location.items.forEach(item => {
                     const icon = item.vegetarian ? '🌱' : item.vegan ? '🥕' : '';
                     const escapedName = item.name.replace(/"/g, '&quot;');
-                    row.innerHTML += `<td><img class="preview" src="meals/${escapedName}.png" alt="${escapedName}">${icon} ${escapedName}<br><div class="price">${item.price}</div></td>`;
+                    row.innerHTML += `<td>${icon} ${escapedName}<br><div class="price">${item.price}</div></td>`;
                 });
 
                 // Fill empty cells if there are fewer items than maxItemsCount
