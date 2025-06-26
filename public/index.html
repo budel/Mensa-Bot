@@ -29,7 +29,7 @@
 <body>
 
 <div id="table-container"></div>
-<div id="last-modified"></div>
+<div id="last-modified" style="text-align: center;"></div>
 
 <script>
     async function fetchData() {
@@ -43,6 +43,7 @@
         const lastModified = new Date(response.headers.get('Last-Modified'));
         const lastModifiedDiv = document.getElementById('last-modified');
         lastModifiedDiv.innerHTML = `Letzte Aktualisierung: ${lastModified.toLocaleString('de-DE')}`;
+        lastModifiedDiv.innerHTML += ` | Alle Angaben ohne Gewähr.`
     }
 
     function generateTable(data) {
