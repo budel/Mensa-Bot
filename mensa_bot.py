@@ -38,7 +38,8 @@ def main():
     if len(sys.argv) > 1:
         check_for_updates(menu_list, menus_file)
     else:
-        message.send()
+        if message.isValid():
+            message.send()
     with open(menus_file, "w", encoding="utf-8") as f:
         json.dump(menu_list, f, indent=2, ensure_ascii=False)
 

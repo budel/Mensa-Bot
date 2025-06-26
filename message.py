@@ -8,6 +8,9 @@ class Message:
     def __init__(self, hook: str):
         self.hook = hook
 
+    def isValid(self) -> bool:
+        return self.hook is not None and self.hook != ""
+
     def addSection(self, text: str):
         self.text += text
 
