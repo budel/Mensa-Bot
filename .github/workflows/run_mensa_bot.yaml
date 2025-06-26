@@ -1,0 +1,29 @@
+
+name: Run Mensa Bot with Python using Nix
+
+on:
+  schedule:
+    - cron: "30 6 * * 1-5" # Monday to Friday at 6:30
+# 30  6 * * 1-5 .../Mensa-Bot/mensabot/bin/python .../Mensa-Bot/mensa_bot.py > .../Mensa-Bot/output.log 2>&1
+# 30 11 * * 1-5 .../Mensa-Bot/mensabot/bin/python .../Mensa-Bot/mensa_bot.py correct > .../Mensa-Bot/output.log 2>&1
+
+jobs:
+  run_mensa_bot:
+    name: Initialize and run Mensa Bot
+    runs-on: ubuntu-24.04
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v3
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Check Nixpkgs inputs
+        uses: DeterminateSystems/flake-checker-action@main
+        with:
+          fail-mode: true
+
+      # Nix-specific logic begins here
+      - name: Run Mensa Bot
+        run: |
+          nix develop --command \
+            python3 mensa_bot.py > output.log 2>&1
