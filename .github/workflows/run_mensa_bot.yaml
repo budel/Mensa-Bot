@@ -39,6 +39,7 @@ jobs:
           path: public/
 
   deploy:
+    name: Deploy updated menu to GitHub Pages
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
