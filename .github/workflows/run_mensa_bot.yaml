@@ -1,11 +1,12 @@
 
 name: Run Mensa Bot with Python using Nix
 
+# 30  6 * * 1-5 .../Mensa-Bot/mensabot/bin/python .../Mensa-Bot/mensa_bot.py > .../Mensa-Bot/output.log 2>&1
+# 30 11 * * 1-5 .../Mensa-Bot/mensabot/bin/python .../Mensa-Bot/mensa_bot.py correct > .../Mensa-Bot/output.log 2>&1
+
 on:
   schedule:
     - cron: "30 6 * * 1-5" # Monday to Friday at 6:30
-# 30  6 * * 1-5 .../Mensa-Bot/mensabot/bin/python .../Mensa-Bot/mensa_bot.py > .../Mensa-Bot/output.log 2>&1
-# 30 11 * * 1-5 .../Mensa-Bot/mensabot/bin/python .../Mensa-Bot/mensa_bot.py correct > .../Mensa-Bot/output.log 2>&1
   workflow_dispatch
 
 jobs:
