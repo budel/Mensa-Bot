@@ -33,7 +33,7 @@ def main():
     )
 
     message.printme()
-    menus_file = pathlib.Path(__file__).parent.resolve() / "menus.json"
+    menus_file = pathlib.Path(__file__).parent.resolve() / "public" / "menus.json"
     menu_list = [menu.to_dict() for menu in menus]
     if len(sys.argv) > 1:
         check_for_updates(menu_list, menus_file)

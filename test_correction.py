@@ -74,7 +74,7 @@ MENU_LIST = [
 
 
 def test_check_for_updates_without_diff():
-    out = check_for_updates(MENU_LIST, "menus.json", send_on_diff=False)
+    out = check_for_updates(MENU_LIST, "public/menus.json", send_on_diff=False)
     assert out == None
 
 
@@ -103,7 +103,7 @@ def test_check_for_updates_with_different_order():
             "price": "",
         },
     ]
-    out = check_for_updates(menu_list, "menus.json", send_on_diff=False)
+    out = check_for_updates(menu_list, "public/menus.json", send_on_diff=False)
     assert out == None
 
 
@@ -131,7 +131,7 @@ def test_check_for_updates_with_diff():
             "price": "",
         },
     ]
-    out = check_for_updates(menu_list, "menus.json", send_on_diff=False)
+    out = check_for_updates(menu_list, "public/menus.json", send_on_diff=False)
     assert out != None
 
 
@@ -159,5 +159,5 @@ def test_check_for_updates_with_order_and_diff():
             "price": "",
         },
     ]
-    out = check_for_updates(menu_list, "menus.json", send_on_diff=False)
+    out = check_for_updates(menu_list, "public/menus.json", send_on_diff=False)
     assert out != None
