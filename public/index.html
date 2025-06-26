@@ -6,14 +6,17 @@
     <title>Speisepläne</title>
     <style>
         table {
-            width: 100%;
+            width: auto;
             border-collapse: collapse;
             margin-bottom: 20px;
+            margin-left: auto;
+            margin-right: auto;
         }
         th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
+            white-space: pre-line; /* allows <br> and preserves line breaks */
         }
         th {
             background-color: #f2f2f2;
@@ -46,41 +49,35 @@
         const container = document.getElementById('table-container');
         const table = document.createElement('table');
 
-        // Create header row
-        const headerRow = document.createElement('tr');
-        headerRow.innerHTML = '<th>Standort</th>';
-        
-        // Create a list to hold the maximum number of items for each location
-        const maxItemsCount = Math.max(...data.map(location => location.items.length));
+        // Filter out locations with no items or empty items array
+        const filteredData = data.filter(location => Array.isArray(location.items) && location.items.length > 0);
 
-        // Create headers for each menu item
-        for (let i = 0; i < maxItemsCount; i++) {
-            headerRow.innerHTML += `<th>Menü ${i + 1}</th>`;
-        }
+        // Find the maximum number of menu items across all remaining locations
+        const maxItemsCount = Math.max(...filteredData.map(location => location.items.length));
+
+        // Create header row: one per location
+        const headerRow = document.createElement('tr');
+        filteredData.forEach(location => {
+            headerRow.innerHTML += `<th><a href="${location.url}" target="_blank"><b>${location.title}</b></a></th>`;
+        });
         table.appendChild(headerRow);
 
-        // Create rows for each location
-        data.forEach(location => {
-            // Only create a row if there are menu items
-            if (location.items.length > 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td><a href="${location.url}" target="_blank"><b>${location.title}</b></a></td>`;
-                
-                // Fill in menu items and prices
-                location.items.forEach(item => {
-                    const icon = item.vegetarian ? '🌱' : item.vegan ? '🥕' : '';
-                    const escapedName = item.name.replace(/"/g, '&quot;');
+        // For each menu slot, create a row
+        for (let i = 0; i < maxItemsCount; i++) {
+            const row = document.createElement('tr');
+            filteredData.forEach(location => {
+                const item = location.items[i];
+                if (item) {
+                    const icon = item.vegetarian ? '🌱<br>' : item.vegan ? '🥕<br>' : '<br>';
+                    let escapedName = item.name.replace(/"/g, '&quot;');
+                    escapedName = escapedName.replace(/(.{30,}?)(\s|$)/g, '$1<br>');
                     row.innerHTML += `<td>${icon} ${escapedName}<br><div class="price">${item.price}</div></td>`;
-                });
-
-                // Fill empty cells if there are fewer items than maxItemsCount
-                for (let i = location.items.length; i < maxItemsCount; i++) {
+                } else {
                     row.innerHTML += '<td></td>';
                 }
-
-                table.appendChild(row);
-            }
-        });
+            });
+            table.appendChild(row);
+        }
 
         container.appendChild(table);
     }
