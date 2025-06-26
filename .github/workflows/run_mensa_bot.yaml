@@ -9,6 +9,9 @@ on:
     - cron: "30 6,11 * * 1-5" # Monday to Friday at 6:30 and 11:30
   workflow_dispatch: # Allows manual triggering of the workflow
 
+permissions:
+  contents: write
+  
 jobs:
   run_mensa_bot:
     name: Run Mensa Bot and update menus file
