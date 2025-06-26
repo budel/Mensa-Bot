@@ -28,6 +28,7 @@ jobs:
         run: |
           nix develop --command \
             python3 mensa_bot.py
+      - name: Upload log
+        uses: actions/upload-artifact@v4
         with:
-          name: run log
           path: mensa_bot.log
