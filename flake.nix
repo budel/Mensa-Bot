@@ -1,22 +1,23 @@
 {
-  description = "Python development environment";
+  description = "Construct development shell from requirements.txt";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    pyproject-nix.url = "github:pyproject-nix/pyproject.nix";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in
-      {
-        devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            tesseract
-            uv
-          ];
-        };
-      });
+  outputs = { nixpkgs, pyproject-nix, flake-utils, ... }:
+  flake-utils.lib.eachDefaultSystem (system:
+  let
+    project = pyproject-nix.lib.project.loadRequirementsTxt { projectRoot = ./.; };
+    pkgs = nixpkgs.legacyPackages.${system};
+    python = pkgs.python3;
+    pythonEnv = pkgs.python3.withPackages (project.renderers.withPackages { inherit python; });
+  in {
+    devShells.default = pkgs.mkShell {
+      packages = [ pythonEnv ];
+    };
+  });
 }
+
