@@ -24,8 +24,10 @@ jobs:
         with:
           fail-mode: true
 
-      # Nix-specific logic begins here
       - name: Run Mensa Bot
         run: |
           nix develop --command \
-            python3 mensa_bot.py > output.log 2>&1
+            python3 mensa_bot.py
+        with:
+          name: run log
+          path: mensa_bot.log
