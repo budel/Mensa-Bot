@@ -29,7 +29,10 @@ def main():
 
     # create a link to the repo
     message.addSection(
-        "<div style='text-align: right'><sup><a href='https://github.com/budel/Mensa-Bot'>Code</a></sup></div>"
+        "<div style='text-align: right'>"
+        "<sup><a href='https://github.com/budel/Mensa-Bot'>Code</a></sup> "
+        "<sup><a href='https://budel.github.io/Mensa-Bot'>Website</a></sup>"
+        "</div>"
     )
 
     message.printme()
