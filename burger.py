@@ -7,7 +7,34 @@ class BurgerMenu(Menu):
     def __init__(self, title="", url=""):
         super().__init__(title, url)
         self.items = [
-            MenuItem("Dummy", "0,00 €", vegetarian=False, vegan=False),
+            MenuItem("Cheeseburger", "9,00 €", vegetarian=False, vegan=False),
+            MenuItem("Double Cheese & Bacon", "9,50 €", vegetarian=False, vegan=False),
+            MenuItem(
+                "Französischer Ziegenkäse Burger mit Feigen Senf-Sauce",
+                "9,50 €",
+                vegetarian=False,
+                vegan=False,
+            ),
+            MenuItem(
+                "Feuriger Salsa Burger mit Jalapenos",
+                "9,50 €",
+                vegetarian=False,
+                vegan=False,
+            ),
+            MenuItem(
+                "Original Smoked BBQ-Burger mit Bacon",
+                "10,00 €",
+                vegetarian=False,
+                vegan=False,
+            ),
+            MenuItem("Falafel Burger", "9,00 €", vegetarian=True, vegan=False),
+            MenuItem("Kiwi Halloumi Burger", "9,00 €", vegetarian=True, vegan=False),
+            MenuItem("Jackfruit Burger", "9,50 €", vegetarian=True, vegan=False),
+            MenuItem(
+                "Planty of Chicken Burger", "10,00 €", vegetarian=True, vegan=False
+            ),
+            MenuItem("Rustic Fries", "4,50 €", vegetarian=True, vegan=False),
+            MenuItem("Süßkartoffelpommes", "5,50 €", vegetarian=True, vegan=False),
         ]
 
     def __str__(self):
