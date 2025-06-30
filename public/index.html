@@ -24,20 +24,94 @@
         .price {
             text-align: right; /* Align the price to the right */
         }
+        #current-day-label {
+            display: inline-block;
+            min-width: 160px;
+        }
+        #prev-day, #next-day {
+            background: #fff;
+            width: 1.25em;
+            border: 0px;
+            border-radius: 15%;
+            font-size: 1.5em;
+            cursor: pointer;
+            vertical-align: middle;
+        }
+        #prev-day:disabled, #next-day:disabled {
+            opacity: 0.33;
+            cursor: not-allowed;
+        }
+        #prev-day:hover:not(:disabled), #next-day:hover:not(:disabled) {
+            background: #f0f0f1;
+        }
     </style>
 </head>
 <body>
 
+<div style="text-align:center; margin-bottom: 10px;">
+    <button id="prev-day">‹</button>
+    <span id="current-day-label" style="font-weight:bold; margin: 0 10px;"></span>
+    <button id="next-day">›</button>
+</div>
 <div id="table-container"></div>
 <div id="last-modified" style="text-align: center;"></div>
 
 <script>
+    let allMenus = [];
+    let allDates = [];
+    let currentDayIndex = 0;
+
     async function fetchData() {
-        const response = await fetch('menus.json'); // Assuming the JSON file is named menus.json
+        const response = await fetch('menus.json');
         const data = await response.json();
-        generateTable(data);
+        allMenus = data;
+        allDates = extractDates(data);
+        updateDayLabel();
+        generateTableForDay(currentDayIndex);
         displayLastModified(response);
     }
+
+    function extractDates(data) {
+        return data.map(dayMenus => {
+            for (const location of dayMenus) {
+                if (Array.isArray(location.items)) {
+                    const itemWithDate = location.items.find(item => item.date);
+                    if (itemWithDate) return itemWithDate.date;
+                }
+            }
+            return null;
+        });
+    }
+
+    function updateDayLabel() {
+        const label = document.getElementById('current-day-label');
+        const date = allDates[currentDayIndex];
+        if (date) {
+            label.textContent = new Date(date).toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' });
+        } else {
+            label.textContent = 'Kein Menü';
+        }
+        // Disable arrows at bounds
+        document.getElementById('prev-day').disabled = currentDayIndex <= 0;
+        document.getElementById('next-day').disabled = currentDayIndex >= allDates.length - 1;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('prev-day').addEventListener('click', () => {
+            if (currentDayIndex > 0) {
+                currentDayIndex--;
+                updateDayLabel();
+                generateTableForDay(currentDayIndex);
+            }
+        });
+        document.getElementById('next-day').addEventListener('click', () => {
+            if (currentDayIndex < allDates.length - 1) {
+                currentDayIndex++;
+                updateDayLabel();
+                generateTableForDay(currentDayIndex);
+            }
+        });
+    });
 
     function displayLastModified(response) {
         const lastModified = new Date(response.headers.get('Last-Modified'));
@@ -46,12 +120,19 @@
         lastModifiedDiv.innerHTML += ` | Alle Angaben ohne Gewähr.`
     }
 
-    function generateTable(data) {
+    function generateTableForDay(dayIndex) {
+        const data = allMenus[dayIndex] || [];
         const container = document.getElementById('table-container');
+        container.innerHTML = ''; // Clear previous content
         const table = document.createElement('table');
 
         // Filter out locations with no items or empty items array
         const filteredData = data.filter(location => Array.isArray(location.items) && location.items.length > 0);
+
+        if (filteredData.length === 0) {
+            container.innerHTML = '<div style="text-align:center;">Keine Menüs für diesen Tag.</div>';
+            return;
+        }
 
         // Find the maximum number of menu items across all remaining locations
         const maxItemsCount = Math.max(...filteredData.map(location => location.items.length));

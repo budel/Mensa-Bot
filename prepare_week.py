@@ -8,25 +8,15 @@ from mensa import getMensaMenu
 from uksh import getMFCMenu, getUKSHMenu
 
 
-def main():
-    menus_file = parse_week()
-    print(f"Menus for the week saved to: {menus_file}")
-    menus_file = parse_week(datetime.date.today() + datetime.timedelta(days=7))
-    print(f"Menus for the next week saved to: {menus_file}")
-
-
 def parse_week(today=datetime.date.today()):
     monday = today - datetime.timedelta(days=today.weekday())
-
-    menus_file = (
-        pathlib.Path(__file__).parent.resolve() / "public" / f"menus-{monday}.json"
-    )
-    if os.path.exists(menus_file):
-        return menus_file
+    menus_file = pathlib.Path(__file__).parent.resolve() / "public" / f"menus.json"
 
     menu_list = []
-    for i in range(5):
+    for i in range(14):  # This and next week
         day = monday + datetime.timedelta(days=i)
+        if day.weekday() >= 5:  # Skip weekends
+            continue
         menus_per_day = []
         for menu_fn in [getMFCMenu, getMensaMenu, getUKSHMenu, getBurgerMenu]:
             menu = menu_fn(day)
@@ -40,4 +30,4 @@ def parse_week(today=datetime.date.today()):
 
 
 if __name__ == "__main__":
-    main()
+    parse_week()

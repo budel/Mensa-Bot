@@ -16,7 +16,7 @@
     pythonEnv = pkgs.python3.withPackages (project.renderers.withPackages { inherit python; });
   in {
     devShells.default = pkgs.mkShell {
-      packages = [ pythonEnv ];
+      packages = [ pythonEnv pkgs.tesseract];
     };
   });
 }
