@@ -1,7 +1,13 @@
 import datetime
 import json
-import os
 import pathlib
+import logging
+import pathlib
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    filename="parse_menus.log", encoding="utf-8", filemode="w+", level=logging.DEBUG
+)
 
 from burger import getBurgerMenu
 from mensa import getMensaMenu

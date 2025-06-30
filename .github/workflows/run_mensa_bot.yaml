@@ -3,7 +3,9 @@ name: Run Mensa Bot with Python using Nix
 
 on:
   schedule:
-    - cron: "30 4-11 * * 1-5" # Monday to Friday at 4:30 UTC until 11:30 UTC
+    # Runs at 4 AM UTC (6 AM MESZ) and 5 AM UTC (6 AM MEZ)
+    # and at 9 AM UTC (11 AM MESZ) and 10 AM UTC (11 AM MEZ)
+    - cron: '0 4,5,9,10 * * *'
   workflow_dispatch: # Allows manual triggering of the workflow
 
 jobs:
@@ -24,11 +26,11 @@ jobs:
       - name: Initialize Nix Flake
         run: nix develop --command echo "Setup complete"
       - name: Run Mensa Bot
-        run: nix develop --command python3 mensa_bot.py
+        run: nix develop --command python3 parse_menus.py
       - name: Upload log
         uses: actions/upload-artifact@v4
         with:
-          path: mensa_bot.log
+          path: parse_menus.log
       - name: Upload static files as artifact
         id: deployment
         uses: actions/upload-pages-artifact@v3

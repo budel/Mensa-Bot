@@ -2,7 +2,7 @@ on:
   schedule:
     # Runs at 4 AM UTC (6 AM MESZ) and 5 AM UTC (6 AM MEZ)
     # Runs at 9 AM UTC (11 AM MESZ) and 10 AM UTC (11 AM MEZ)
-    - cron: '0 4,5,9,10 * * *'
+    - cron: '0 4,5,9,10 * * 1-5'
 
 jobs:
   check_time:
