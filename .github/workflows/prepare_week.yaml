@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Check if it's 6 AM or 11 AM in Berlin
         run: |
-          current_hour=$(TZ='Germany/Berlin' date +'%H')
+          current_hour=$(TZ='Europe/Berlin' date +'%H')
           echo "Current hour in Berlin: $current_hour"
           if [ "$current_hour" == "08" ]; then
             echo "It's 8 AM! Running tasks..."
