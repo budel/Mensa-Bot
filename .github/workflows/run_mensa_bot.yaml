@@ -1,37 +1,57 @@
-
-name: Run Mensa Bot with Python using Nix
+name: Run and Deploy Mensa Bot
 
 on:
   schedule:
     # Runs at 4 AM UTC (6 AM MESZ) and 5 AM UTC (6 AM MEZ)
     # and at 9 AM UTC (11 AM MESZ) and 10 AM UTC (11 AM MEZ)
-    - cron: '0 4,5,9,10 * * *'
+    - cron: '0 4,5,9,10 * * 1-5'
   workflow_dispatch: # Allows manual triggering of the workflow
 
 jobs:
   build:
-    name: Run Mensa Bot and upload menus file
+    name: Run Mensa Bot, Upload & Deploy Pages
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Check if it's 6 AM or 11 AM in Berlin
+        id: timecheck
+        run: |
+          current_hour=$(TZ='Europe/Berlin' date +'%H')
+          echo "Current hour in Berlin: $current_hour"
+          if [ "$current_hour" == "06" ]; then
+            echo "run_mensa=true" >> $GITHUB_ENV
+          fi
+          if [ "$current_hour" == "11" ]; then
+            echo "run_mensa=true" >> $GITHUB_ENV
+          fi
+
       - name: Install Nix
+        if: env.run_mensa == 'true'
         uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
+        if: env.run_mensa == 'true'
+
       - name: Check Nixpkgs inputs
+        if: env.run_mensa == 'true'
         uses: DeterminateSystems/flake-checker-action@main
         with:
           fail-mode: true
 
       - name: Initialize Nix Flake
+        if: env.run_mensa == 'true'
         run: nix develop --command echo "Setup complete"
       - name: Run Mensa Bot
+        if: env.run_mensa == 'true'
         run: nix develop --command python3 parse_menus.py
       - name: Upload log
+        if: env.run_mensa == 'true'
         uses: actions/upload-artifact@v4
         with:
           path: parse_menus.log
       - name: Upload static files as artifact
+        if: env.run_mensa == 'true'
         id: deployment
         uses: actions/upload-pages-artifact@v3
         with:
@@ -49,5 +69,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
+        if: env.run_mensa == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
