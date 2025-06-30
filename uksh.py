@@ -38,7 +38,7 @@ def createMenu(title, url, today, price_on_lhs):
         menu = Menu(title, url)
         filename = "menu.pdf"
         prepare_pdf(url, filename)
-        return parse_pdf(today.weekday(), menu, price_on_lhs, filename=filename)
+        return parse_pdf(today, menu, price_on_lhs, filename=filename)
     except Exception as e:
         logger.debug(f"Error: {e}")
         return Menu(title, url)
@@ -95,10 +95,9 @@ def auto_crop_pdf(input_pdf, output_pdf):
     doc.close()
 
 
-def parse_pdf(
-    weekday, menu, price_on_lhs, filename="menu.pdf", dpi=300, veggie_index=1
-):
+def parse_pdf(today, menu, price_on_lhs, filename="menu.pdf", dpi=300, veggie_index=1):
     logger.debug(f"parse_pdf")
+    weekday = today.weekday()
     with fitz.open(filename) as pdf:
         assert pdf.page_count > 0
         page = pdf[0]
@@ -110,7 +109,7 @@ def parse_pdf(
             text, price = extract_text(pil_image, page, x, y, price_on_lhs, dpi=dpi)
             if not text:
                 continue
-            menu.add_item(" ".join(text), price, vegetarian=i == veggie_index)
+            menu.add_item(" ".join(text), price, today, vegetarian=i == veggie_index)
     return menu
 
 

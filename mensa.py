@@ -20,13 +20,19 @@ def getMensaMenu(today):
         menu_dict = json.loads(response.text)
     else:
         logger.debug(f"Failed to download {url}")
-        menu.add_item(f"Konnte {url} nicht erreichen.", "")
+        menu.add_item(f"Konnte {url} nicht erreichen.", "", today)
         return menu
 
     for meal in menu_dict["data"]:
         prices = " / ".join(map(formatPrice, meal["price"].values()))
         prices = "" if prices == "0.0 / 0.0 / 0.0" else prices
-        menu.add_item(meal["name"], prices, vegetarian=meal["vegetarian"], vegan=meal["vegan"])
+        menu.add_item(
+            meal["name"],
+            prices,
+            today,
+            vegetarian=meal["vegetarian"],
+            vegan=meal["vegan"],
+        )
 
     return menu
 

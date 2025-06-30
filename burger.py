@@ -4,37 +4,50 @@ BURGER_URL = "https://www.street-gourmet.de"
 
 
 class BurgerMenu(Menu):
-    def __init__(self, title="", url=""):
+    def __init__(self, date, title="", url=""):
         super().__init__(title, url)
         self.items = [
-            MenuItem("Cheeseburger", "9,00 €", vegetarian=False, vegan=False),
-            MenuItem("Double Cheese & Bacon", "9,50 €", vegetarian=False, vegan=False),
+            MenuItem("Cheeseburger", "9,00 €", date, vegetarian=False, vegan=False),
+            MenuItem(
+                "Double Cheese & Bacon", "9,50 €", date, vegetarian=False, vegan=False
+            ),
             MenuItem(
                 "Französischer Ziegenkäse Burger mit Feigen Senf-Sauce",
                 "9,50 €",
+                date,
                 vegetarian=False,
                 vegan=False,
             ),
             MenuItem(
                 "Feuriger Salsa Burger mit Jalapenos",
                 "9,50 €",
+                date,
                 vegetarian=False,
                 vegan=False,
             ),
             MenuItem(
                 "Original Smoked BBQ-Burger mit Bacon",
                 "10,00 €",
+                date,
                 vegetarian=False,
                 vegan=False,
             ),
-            MenuItem("Falafel Burger", "9,00 €", vegetarian=True, vegan=False),
-            MenuItem("Kiwi Halloumi Burger", "9,00 €", vegetarian=True, vegan=False),
-            MenuItem("Jackfruit Burger", "9,50 €", vegetarian=True, vegan=False),
+            MenuItem("Falafel Burger", "9,00 €", date, vegetarian=True, vegan=False),
             MenuItem(
-                "Planty of Chicken Burger", "10,00 €", vegetarian=True, vegan=False
+                "Kiwi Halloumi Burger", "9,00 €", date, vegetarian=True, vegan=False
             ),
-            MenuItem("Rustic Fries", "4,50 €", vegetarian=True, vegan=False),
-            MenuItem("Süßkartoffelpommes", "5,50 €", vegetarian=True, vegan=False),
+            MenuItem("Jackfruit Burger", "9,50 €", date, vegetarian=True, vegan=False),
+            MenuItem(
+                "Planty of Chicken Burger",
+                "10,00 €",
+                date,
+                vegetarian=True,
+                vegan=False,
+            ),
+            MenuItem("Rustic Fries", "4,50 €", date, vegetarian=True, vegan=False),
+            MenuItem(
+                "Süßkartoffelpommes", "5,50 €", date, vegetarian=True, vegan=False
+            ),
         ]
 
     def __str__(self):
@@ -116,7 +129,7 @@ class BurgerMenu(Menu):
 
 def getBurgerMenu(today):
     if isBurgerDay(today):
-        return BurgerMenu("Foodtruck", BURGER_URL)
+        return BurgerMenu(today, "Foodtruck", BURGER_URL)
     else:
         return Menu("Foodtruck", BURGER_URL)
 
