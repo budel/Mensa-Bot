@@ -1,0 +1,32 @@
+name: Get current menus and send todays to teams channel  
+
+on:
+  schedule:
+    # Runs at 9 AM UTC (10 AM MEZ / 11 AM MESZ)
+    - cron: '0 9 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  pull_and_push:
+    name: Get current menus and send todays to teams channel
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Check Nixpkgs inputs
+        uses: DeterminateSystems/flake-checker-action@main
+        with:
+          fail-mode: true
+
+      - name: Initialize Nix Flake
+        run: nix develop --command echo "Setup complete"
+      - name: Pull, parse and send
+        run: nix develop --command python3 mensa_bot.py
+      - name: Upload log
+        uses: actions/upload-artifact@v4
+        with:
+          path: mensa_bot.log
