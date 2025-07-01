@@ -1,23 +1,38 @@
 {
-  description = "Construct development shell from requirements.txt";
+  description = "Python development setup with Nix";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    pyproject-nix.url = "github:pyproject-nix/pyproject.nix";
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { nixpkgs, pyproject-nix, flake-utils, ... }:
-  flake-utils.lib.eachDefaultSystem (system:
-  let
-    project = pyproject-nix.lib.project.loadRequirementsTxt { projectRoot = ./.; };
-    pkgs = nixpkgs.legacyPackages.${system};
-    python = pkgs.python3;
-    pythonEnv = pkgs.python3.withPackages (project.renderers.withPackages { inherit python; });
-  in {
-    devShells.default = pkgs.mkShell {
-      packages = [ pythonEnv pkgs.tesseract];
-    };
-  });
+  outputs = { nixpkgs, flake-utils, ... }:
+  flake-utils.lib.eachDefaultSystem (
+    system:
+    let
+      pkgs = import nixpkgs { inherit system; };
+    in
+    {
+      devShells.default = pkgs.mkShell {
+        packages = with pkgs; [
+          python313
+          python313Packages.numpy
+          python313Packages.pymupdf
+          python313Packages.pytesseract
+          python313Packages.pytest
+          python313Packages.python-dotenv
+          python313Packages.requests 
+          tesseract
+        ];
+      };
+      devShells.mini = pkgs.mkShell {
+        packages = with pkgs; [
+          python313
+          python313Packages.python-dotenv
+          python313Packages.requests 
+        ];
+      };
+    }
+  );
 }
 
