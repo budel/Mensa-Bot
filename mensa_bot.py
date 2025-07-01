@@ -24,6 +24,12 @@ def main():
     load_dotenv()
     message = Message(os.getenv("WEBHOOK"))
 
+    message.addSection(
+        "<h2>"
+        "The menu now has its own <a href='https://budel.github.io/Mensa-Bot'>Website</a>!"
+        "</h2><br>"
+    )
+
     # create sections in message
     menus = create_message(message)
 
@@ -31,7 +37,6 @@ def main():
     message.addSection(
         "<div style='text-align: right'>"
         "<sup><a href='https://github.com/budel/Mensa-Bot'>Code</a></sup> "
-        "<sup><a href='https://budel.github.io/Mensa-Bot'>Website</a></sup>"
         "</div>"
     )
 
