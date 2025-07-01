@@ -66,6 +66,13 @@
         const data = await response.json();
         allMenus = data;
         allDates = extractDates(data);
+
+        // Find today's date in allDates
+        const today = new Date();
+        const todayStr = today.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+        const foundIndex = allDates.findIndex(date => date && date.startsWith(todayStr));
+        currentDayIndex = foundIndex !== -1 ? foundIndex : 0;
+
         updateDayLabel();
         generateTableForDay(currentDayIndex);
         displayLastModified(response);
