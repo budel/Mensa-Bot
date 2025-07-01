@@ -11,48 +11,27 @@ jobs:
   build:
     name: Run Mensa Bot, Upload & Deploy Pages
     runs-on: ubuntu-24.04
-    outputs:
-      run_mensa: ${{ steps.timecheck.outputs.run_mensa }}
     steps:
       - name: Checkout repository
-        if: steps.timecheck.outputs.run_mensa == 'true'
         uses: actions/checkout@v3
 
-      - name: Check if it's 6 AM or 11 AM in Berlin
-        id: timecheck
-        run: |
-          current_hour=$(TZ='Europe/Berlin' date +'%H')
-          echo "Current hour in Berlin: $current_hour"
-          if [ "$current_hour" == "08" ] || [ "$current_hour" == "11" ]; then
-            echo "run_mensa=true" >> $GITHUB_OUTPUT
-          else
-            echo "run_mensa=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Install Nix
-        if: steps.timecheck.outputs.run_mensa == 'true'
         uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
-        if: steps.timecheck.outputs.run_mensa == 'true'
       - name: Check Nixpkgs inputs
-        if: steps.timecheck.outputs.run_mensa == 'true'
         uses: DeterminateSystems/flake-checker-action@main
         with:
           fail-mode: true
 
       - name: Initialize Nix Flake
-        if: steps.timecheck.outputs.run_mensa == 'true'
         run: nix develop --command echo "Setup complete"
       - name: Run Mensa Bot
-        if: steps.timecheck.outputs.run_mensa == 'true'
         run: nix develop --command python3 parse_menus.py
       - name: Upload log
-        if: steps.timecheck.outputs.run_mensa == 'true'
         uses: actions/upload-artifact@v4
         with:
           path: parse_menus.log
       - name: Upload static files as artifact
-        if: steps.timecheck.outputs.run_mensa == 'true'
         id: deployment
         uses: actions/upload-pages-artifact@v3
         with:
@@ -61,7 +40,6 @@ jobs:
   deploy:
     name: Deploy updated menu to GitHub Pages
     needs: build
-    if: steps.timecheck.outputs.run_mensa == 'true'
     permissions:
       pages: write
       id-token: write
