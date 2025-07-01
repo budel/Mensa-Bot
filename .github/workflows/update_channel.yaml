@@ -26,6 +26,8 @@ jobs:
         run: nix develop --command echo "Setup complete"
       - name: Pull, parse and send
         run: nix develop --command python3 mensa_bot.py
+        env:
+          WEBHOOK: ${{ secrets.WEBHOOK }}
       - name: Upload log
         uses: actions/upload-artifact@v4
         with:
