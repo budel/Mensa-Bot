@@ -23,7 +23,7 @@ jobs:
         run: |
           current_hour=$(TZ='Europe/Berlin' date +'%H')
           echo "Current hour in Berlin: $current_hour"
-          if [ "$current_hour" == "06" ] || [ "$current_hour" == "11" ]; then
+          if [ "$current_hour" == "08" ] || [ "$current_hour" == "11" ]; then
             echo "run_mensa=true" >> $GITHUB_OUTPUT
           else
             echo "run_mensa=false" >> $GITHUB_OUTPUT
