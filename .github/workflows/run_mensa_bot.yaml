@@ -2,9 +2,9 @@ name: Run and Deploy Mensa Bot
 
 on:
   schedule:
-    # Runs at 4 AM UTC (6 AM MESZ) and 5 AM UTC (6 AM MEZ)
+    # Runs at 4 AM UTC (5 AM MEZ / 6 AM MESZ)
     # and at 9 AM UTC (11 AM MESZ) and 10 AM UTC (11 AM MEZ)
-    - cron: '0 4,5,9,10 * * 1-5'
+    - cron: '0 4,9,10 * * 1-5'
   workflow_dispatch: # Allows manual triggering of the workflow
 
 jobs:
