@@ -1,4 +1,4 @@
-name: Run and Deploy Mensa Bot
+name: Get menus and deploy as webpage
 
 on:
   schedule:
