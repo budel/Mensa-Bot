@@ -135,4 +135,4 @@ def getBurgerMenu(today):
 
 
 def isBurgerDay(today):
-    return today.weekday() == 1
+    return False # today.weekday() == 1
