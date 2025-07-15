@@ -7,6 +7,8 @@ import json
 from menu import Menu
 
 MENSA_URL = "https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=8#mensaplan"
+LOCATION_CAFETERIA="HL_CA"
+LOCATION_MENSA="HL_ME"
 
 
 def getMensaMenu(today):
@@ -14,7 +16,7 @@ def getMensaMenu(today):
 
     logger.debug(f"getMensaMenu")
     day = today.strftime("%Y-%m-%d")
-    url = f"https://speiseplan.mcloud.digital/v2/meals?location=HL_ME&date={day}"
+    url = f"https://speiseplan.mcloud.digital/v2/meals?location={LOCATION_MENSA}&date={day}"
     response = requests.get(url)
     if response.status_code == 200:
         menu_dict = json.loads(response.text)
