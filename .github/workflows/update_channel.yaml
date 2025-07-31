@@ -21,6 +21,7 @@ jobs:
         uses: DeterminateSystems/flake-checker-action@main
         with:
           fail-mode: true
+          check-outdated: true
 
       - name: Initialize Nix Flake
         run: nix develop .#mini --command echo "Setup complete"
