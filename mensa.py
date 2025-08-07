@@ -26,7 +26,7 @@ def getMenu(today, name, location):
         menu_dict = json.loads(response.text)
     except:
         logger.debug(f"Failed to download {url}")
-        menu.add_item(f"Konnte {url} nicht erreichen.", "", today)
+        menu.add_item(f"Fehler beim Holen von {url}", "", today)
         return menu
 
     for meal in menu_dict["data"]:
