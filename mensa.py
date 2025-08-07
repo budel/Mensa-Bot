@@ -20,10 +20,11 @@ def getMenu(today, name, location):
     menu = Menu(name, MENSA_URL)
     day = today.strftime("%Y-%m-%d")
     url = f"https://speiseplan.mcloud.digital/v2/meals?location={location}&date={day}"
-    response = requests.get(url)
-    if response.status_code == 200:
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
         menu_dict = json.loads(response.text)
-    else:
+    except:
         logger.debug(f"Failed to download {url}")
         menu.add_item(f"Konnte {url} nicht erreichen.", "", today)
         return menu
