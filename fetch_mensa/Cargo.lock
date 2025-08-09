@@ -996,7 +996,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mensa_menu_fetcher"
+name = "mensa_fetcher"
 version = "0.1.0"
 dependencies = [
  "chrono",

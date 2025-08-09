@@ -3,8 +3,14 @@ use serde_json;
 use std::fs::File;
 use std::io::Write;
 
+#[unsafe(no_mangle)]
+fn compute() {
+    let _ = fetch_menu();
+}
+
+
 #[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn fetch_menu() -> Result<(), Box<dyn std::error::Error>> {
     // Fetch the data
     let menu_data = Cache::fetch_data().await;
     let menu = menu_data.unwrap();

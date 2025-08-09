@@ -1,7 +1,11 @@
 [package]
-name = "mensa_menu_fetcher"
+name = "mensa_fetcher"
 version = "0.1.0"
-edition = "2024"
+edition = "2025"
+
+[lib]
+name = "mensa_fetcher"
+crate-type = ["cdylib"]
 
 [dependencies]
 chrono = "0.4.41"
