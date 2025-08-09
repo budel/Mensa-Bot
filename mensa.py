@@ -19,7 +19,7 @@ def getMenu(today, name, location):
     logger.debug(f"getMensaMenu")
     menu = Menu(name, MENSA_URL)
     day = today.strftime("%Y-%m-%d")
-    url = f"https://speiseplan.mcloud.digital/v2/meals?location={location}&date={day}"
+    url = f"http://localhost:3030/v2/meals?location={location}&date={day}"
     try:
         response = requests.get(url)
         response.raise_for_status()

@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
@@ -26,8 +28,10 @@ jobs:
 
       - name: Initialize Nix Flake
         run: nix develop --command echo "Setup complete"
+      - name: Initialize mensa-api
+        run: nix develop .#mensa-api --command bash -c "cd mensa-api; cargo build"
       - name: Run Mensa Bot
-        run: nix develop --command python3 parse_menus.py
+        run: nix develop --command python3 actions_wrapper.py
       - name: Upload log
         uses: actions/upload-artifact@v4
         with:
