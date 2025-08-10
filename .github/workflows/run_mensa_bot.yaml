@@ -29,7 +29,7 @@ jobs:
       - name: Initialize Nix Flake
         run: nix develop --command echo "Setup complete"
       - name: Initialize mensa-api
-        run: nix develop .#mensa-api --command bash -c "cd mensa-api; cargo build"
+        run: nix develop .#mensa-api --command bash -c "cd fetch_mensa; cargo build"
       - name: Run Mensa Bot
         run: nix develop --command python3 parse_menus.py
       - name: Upload log
