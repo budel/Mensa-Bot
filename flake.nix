@@ -4,13 +4,20 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
   };
 
-  outputs = { nixpkgs, flake-utils, ... }:
+  outputs = { nixpkgs, flake-utils, rust-overlay, ... }:
   flake-utils.lib.eachDefaultSystem (
     system:
     let
-      pkgs = import nixpkgs { inherit system; };
+      overlays = [ (import rust-overlay) ];
+      pkgs = import nixpkgs { inherit system overlays; };
     in
     {
       devShells.default = pkgs.mkShell {
@@ -21,7 +28,7 @@
           python313Packages.pytesseract
           python313Packages.pytest
           python313Packages.python-dotenv
-          python313Packages.requests 
+          python313Packages.requests
           tesseract
         ];
       };
@@ -29,7 +36,12 @@
         packages = with pkgs; [
           python313
           python313Packages.python-dotenv
-          python313Packages.requests 
+          python313Packages.requests
+        ];
+      };
+      devShells.mensa-api = pkgs.mkShell {
+        buildInputs = with pkgs; [
+          rust-bin.stable.latest.default
         ];
       };
     }

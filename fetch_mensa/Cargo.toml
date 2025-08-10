@@ -1,0 +1,15 @@
+[package]
+name = "mensa_fetcher"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "mensa_fetcher"
+crate-type = ["cdylib"]
+
+[dependencies]
+chrono = "0.4.41"
+mensa-api = { git = "https://github.com/Draculente/mensa-api.git" }
+serde_json = "1.0"
+tokio = { version = "1.40.0", features = ["full"] }
+
