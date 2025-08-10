@@ -4,6 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 import requests
 import json
+from fetch_mensa import fetch_mensa
 from menu import Menu
 
 MENSA_URL = "https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=8#mensaplan"
@@ -21,9 +22,9 @@ def getMenu(today, name, location):
     day = today.strftime("%Y-%m-%d")
     url = f"http://localhost:3030/v2/meals?location={location}&date={day}"
     try:
-        response = requests.get(url)
-        response.raise_for_status()
-        menu_dict = json.loads(response.text)
+        json_str = fetch_mensa()
+        menu_dict = json.loads(json_str)
+        # Filter menu by location and date
     except:
         logger.debug(f"Failed to download {url}")
         menu.add_item(f"Fehler beim Holen von {url}", "", today)
