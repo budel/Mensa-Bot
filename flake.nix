@@ -41,7 +41,6 @@
       };
       devShells.mensa-api = pkgs.mkShell {
         buildInputs = with pkgs; [
-          python313
           rust-bin.stable.latest.default
         ];
       };
