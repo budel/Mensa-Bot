@@ -5,7 +5,7 @@ lib = ctypes.CDLL('fetch_mensa/target/debug/libmensa_fetcher.so')
 lib.compute.restype = ctypes.c_char_p
 
 @functools.cache
-def fetch_mensa_menu()
+def fetch_mensa():
     ptr = lib.compute()
     result = ctypes.c_char_p(ptr).value.decode("utf-8")
     if result:

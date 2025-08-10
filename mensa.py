@@ -20,17 +20,17 @@ def getMenu(today, name, location):
     logger.debug(f"getMensaMenu")
     menu = Menu(name, MENSA_URL)
     day = today.strftime("%Y-%m-%d")
-    url = f"http://localhost:3030/v2/meals?location={location}&date={day}"
     try:
         json_str = fetch_mensa()
-        menu_dict = json.loads(json_str)
+        menu_dicts = json.loads(json_str)
         # Filter menu by location and date
+        menu_dicts = [m for m in menu_dicts if m["location"]["code"] == location and m["date"] == day and m["language"]["code"] == "de"]
     except:
         logger.debug(f"Failed to download {url}")
         menu.add_item(f"Fehler beim Holen von {url}", "", today)
         return menu
 
-    for meal in menu_dict["data"]:
+    for meal in menu_dicts:
         prices = " / ".join(map(formatPrice, meal["price"].values()))
         prices = "" if prices == "0.0 / 0.0 / 0.0" else prices
         menu.add_item(
