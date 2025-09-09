@@ -10,6 +10,9 @@ from menu import Menu
 MENSA_URL = "https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=8#mensaplan"
 
 
+def getBitsBytesMenu(today):
+    return getMenu(today, "Bits + Bytes", "HL_BB")
+
 def getCafeteriaMenu(today):
     return getMenu(today, "Studenten Cafeteria", "HL_CA")
 
