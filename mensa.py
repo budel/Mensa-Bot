@@ -8,20 +8,21 @@ from fetch_mensa import fetch_mensa
 from menu import Menu
 
 MENSA_URL = "https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=8#mensaplan"
+BB_URL = "https://studentenwerk.sh/de/mensen-in-luebeck?ort=3&mensa=17#mensaplan"
 
 
 def getBitsBytesMenu(today):
-    return getMenu(today, "Bits + Bytes", "HL_BB")
+    return getMenu(today, "Bits + Bytes", "HL_BB", BB_URL)
 
 def getCafeteriaMenu(today):
-    return getMenu(today, "Studenten Cafeteria", "HL_CA")
+    return getMenu(today, "Studenten Cafeteria", "HL_CA", MENSA_URL)
 
 def getMensaMenu(today):
-    return getMenu(today, "Studenten Mensa", "HL_ME")
+    return getMenu(today, "Studenten Mensa", "HL_ME", MENSA_URL)
 
-def getMenu(today, name, location):
+def getMenu(today, name, location, url):
     logger.debug(f"getMensaMenu")
-    menu = Menu(name, MENSA_URL)
+    menu = Menu(name, url)
     day = today.strftime("%Y-%m-%d")
     try:
         json_str = fetch_mensa()
