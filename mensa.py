@@ -36,7 +36,7 @@ def getMenu(today, name, location, url):
 
     for meal in menu_dicts:
         prices = " / ".join(map(formatPrice, meal["price"].values()))
-        prices = "" if prices == "0.0 / 0.0 / 0.0" else prices
+        prices = "" if prices == "0.00 € / 0.00 € / 0.00 €" else prices
         menu.add_item(
             meal["name"],
             prices,
