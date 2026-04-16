@@ -43,6 +43,10 @@
         buildInputs = with pkgs; [
           rust-bin.stable.latest.default
         ];
+        shellHook = ''
+          cd fetch_mensa
+          cargo build
+        '';
       };
     }
   );
