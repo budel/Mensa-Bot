@@ -10,6 +10,7 @@ import fitz  # PyMuPDF
 import numpy as np
 import pytesseract
 import requests
+from skimage.feature import match_template
 from PIL import Image
 
 from menu import Menu
@@ -106,10 +107,18 @@ def parse_pdf(today, menu, price_on_lhs, filename="menu.pdf", dpi=300, veggie_in
         y = ys[weekday]
         cols, xs = extract_menu_cols(rows[weekday])
         for i, (col, x) in enumerate(zip(cols, xs)):
-            text, price, is_veg = extract_text(pil_image, page, x, y, price_on_lhs, dpi=dpi)
+            text, price, is_vegan = extract_text(
+                pil_image, page, x, y, price_on_lhs, dpi=dpi
+            )
             if not text:
                 continue
-            menu.add_item(" ".join(text), price, today, vegetarian=i == veggie_index)
+            menu.add_item(
+                " ".join(text),
+                price,
+                today,
+                vegetarian=i == veggie_index,
+                vegan=is_vegan,
+            )
     return menu
 
 
@@ -176,8 +185,8 @@ def extract_text(pil_image, page, x, y, price_on_lhs, dpi=300):
     rect = fitz.Rect(x[0] * f, y[0] * f, x[1] * f, y[1] * f)
     text = page.get_text(sort=True, clip=rect)
     price = get_price(pil_image, x, y, price_on_lhs, dpi=dpi)
-    is_veg = get_veggie_by_symbol(pil_image, x, y, price_on_lhs, dpi=dpi)
-    return filter_text(text), price
+    is_vegan = get_veggie_by_symbol(pil_image, x, y, price_on_lhs, dpi=dpi)
+    return filter_text(text), price, is_vegan
 
 
 def get_price(pil_image, x, y, price_on_lhs, dpi=300):
@@ -205,10 +214,17 @@ def get_price(pil_image, x, y, price_on_lhs, dpi=300):
 
 def get_veggie_by_symbol(pil_image, x, y, symbol_on_lhs, dpi=300):
     logger.debug(f"get_veggie_by_symbol")
-    xNew = [x[0], (x[0] + x[1]) / 2.0] if price_on_lhs else [(x[0] + x[1]) / 2.0, x[1]]
-    cell = pil_image.crop((xNew[0], y[1] - 0.2 * dpi, xNew[1], y[1]))
-    cell.save("cell.png")
-    return False
+    xNew = (
+        [x[0], x[0] + (x[1] - x[0]) / 4.0]
+        if symbol_on_lhs
+        else [x[0] + (x[1] - x[0]) * 3.0 / 4.0, x[1]]
+    )
+    yNew = [(y[0] + y[1]) / 2.0, y[1]]
+    cell = pil_image.crop((xNew[0], yNew[0], xNew[1], yNew[1]))
+    result = match_template(
+        np.asarray(cell), np.asarray(Image.open("veggie_symbol.png"))
+    )
+    return bool(np.max(result) > 0.9)
 
 
 def filter_text(text):

@@ -24,7 +24,14 @@ def parse_week(today=datetime.date.today()):
         if day.weekday() >= 5:  # Skip weekends
             continue
         menus_per_day = []
-        for menu_fn in [getMFCMenu, getMensaMenu, getCafeteriaMenu, getBitsBytesMenu, getUKSHMenu, getBurgerMenu]:
+        for menu_fn in [
+            getMFCMenu,
+            getMensaMenu,
+            getCafeteriaMenu,
+            getBitsBytesMenu,
+            getUKSHMenu,
+            getBurgerMenu,
+        ]:
             menu = menu_fn(day)
             menus_per_day.append(menu)
         menu_list.append([menu.to_dict() for menu in menus_per_day])
