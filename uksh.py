@@ -214,17 +214,23 @@ def get_price(pil_image, x, y, price_on_lhs, dpi=300):
 
 def get_veggie_by_symbol(pil_image, x, y, symbol_on_lhs, dpi=300):
     logger.debug(f"get_veggie_by_symbol")
-    xNew = (
-        [x[0], x[0] + (x[1] - x[0]) / 4.0]
-        if symbol_on_lhs
-        else [x[0] + (x[1] - x[0]) * 3.0 / 4.0, x[1]]
-    )
-    yNew = [(y[0] + y[1]) / 2.0, y[1]]
-    cell = pil_image.crop((xNew[0], yNew[0], xNew[1], yNew[1]))
-    result = match_template(
-        np.asarray(cell), np.asarray(Image.open("veggie_symbol.png"))
-    )
-    return bool(np.max(result) > 0.9)
+    veg_symbol = Image.open("veggie_symbol.png")
+    for symbol_on_lhs in [False, True]:
+        for scale in np.arange(0.8, 1.2, 0.1):
+            xNew = (
+                [x[0], x[0] + (x[1] - x[0]) / 4.0]
+                if symbol_on_lhs
+                else [x[0] + (x[1] - x[0]) * 3.0 / 4.0, x[1]]
+            )
+            yNew = [(y[0] + y[1]) / 2.0, y[1]]
+            cell = pil_image.crop((xNew[0], yNew[0], xNew[1], yNew[1]))
+            veg_symbol_resized = veg_symbol.resize(
+                (int(veg_symbol.width * scale), int(veg_symbol.height * scale))
+            )
+            result = match_template(np.asarray(cell), np.asarray(veg_symbol_resized))
+            if bool(np.max(result) > 0.9):
+                return True
+    return False
 
 
 def filter_text(text):
