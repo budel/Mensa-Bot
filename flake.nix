@@ -29,6 +29,7 @@
           python313Packages.pytest
           python313Packages.python-dotenv
           python313Packages.requests
+          python313Packages.scikit-image
           tesseract
         ];
       };
