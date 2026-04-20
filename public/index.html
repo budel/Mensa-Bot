@@ -157,7 +157,7 @@
             filteredData.forEach(location => {
                 const item = location.items[i];
                 if (item) {
-                    const icon = item.vegetarian ? '🌱<br>' : item.vegan ? '🥕<br>' : '<br>';
+                    const icon = item.vegan ? '🥕<br>' : item.vegetarian ? '🌱<br>' : '<br>';
                     let escapedName = item.name.replace(/"/g, '&quot;');
                     escapedName = escapedName.replace(/(.{30,}?)(\s|$)/g, '$1<br>');
                     row.innerHTML += `<td>${icon} ${escapedName}<br><div class="price">${item.price}</div></td>`;

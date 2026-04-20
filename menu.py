@@ -22,14 +22,21 @@ class MenuItem:
         return self.name < other.name
 
     def __str__(self) -> str:
-        v_icon = "&#127793;" if self.is_veggie() else ""
+        v_icon = ""
+        if self.is_vegan():
+            v_icon = "&#129365;"  # carrot emoji
+        elif self.is_vegetarian():
+            v_icon = "&#127793;"  # leaf emoji
         return f"{v_icon} {self.name}<br>{self.price}"
 
     def is_same(self, other: "MenuItem") -> bool:
         return self.name == other.name and self.price == other.price
 
-    def is_veggie(self) -> bool:
-        return self.vegetarian or self.vegan
+    def is_vegan(self) -> bool:
+        return self.vegan
+
+    def is_vegetarian(self) -> bool:
+        return self.vegetarian
 
     def to_dict(self) -> Dict[str, Any]:
         return {
