@@ -2,8 +2,8 @@ name: Get current menus and send todays to teams channel
 
 on:
   schedule:
-    # Runs earliest at 8:30 AM UTC (9:30 AM MEZ / 10:30 AM MESZ)
-    - cron: '30 8 * * 1-5'
+    # Runs earliest at 7:00 AM UTC (8:00 AM MEZ / 9:00 AM MESZ)
+    - cron: '0 7 * * 1-5'
   workflow_dispatch:
 
 jobs:
