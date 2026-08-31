@@ -1,9 +1,6 @@
 name: Get menus and deploy as webpage
 
 on:
-  schedule:
-    # Runs at 3 AM UTC (4 AM MEZ / 5 AM MESZ)
-    - cron: '0 3 * * 1-5'
   workflow_dispatch: # Allows manual triggering of the workflow
 
 jobs:
